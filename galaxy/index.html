@@ -1,7 +1,9 @@
 <!--
-    I need to consider the global potential when I update the positions and velocities, so I need 
+    - I need to consider the global potential when I update the positions and velocities, so I need 
     to have some kind of way to keep track of the potential due to all galaxies when computing the
     accelerations...
+    
+    - Click and drag to create a new galaxy - dragging right increases new galaxy radius, dragging up increases number of stars!
 -->
 
 <html>
@@ -135,103 +137,46 @@
             colors = {"bulge" : "rgba(217, 100, 100, 0.85)", "disk" : "rgba(215, 215, 215, 0.5)"},
             dt = $('#dt').val();
         
-        function create_galaxy() {
-            // Create a new Galaxy in the center of the screen
-            var galaxy_position = [canvas.width/2., canvas.height/2.],
-                galaxy_velocity = [$("#vx").val(), $("#vy").val()];
-            galaxy = new LogarithmicGalaxy(galaxy_position, galaxy_velocity);
-            
-            if ($('#add_disk').is(':checked')) {
-                galaxy.add_disk(number=parseInt($("#num_disk_stars").val()), 
-                    radius=parseFloat($("#disk_radius").val()), 
-                    dispersion=parseFloat($("#disk_dispersion").val())); // % dispersion
-            }
-            
-            if ($('#add_bulge').is(':checked')) {
-                galaxy.add_bulge(number=parseInt($("#num_bulge_stars").val()), 
-                    radius=parseFloat($("#disk_radius").val())/8., 
-                    dispersion=parseFloat($("#bulge_dispersion").val()));
-            }
-            
-            /*
-            merger_galaxy = new LogarithmicGalaxy([200., 200.], galaxy_velocity);
-            merger_galaxy.add_disk(parseInt(100), 
-                    parseFloat(100.), 
-                    parseFloat(0.)); // % dispersion
-            */
-
-        }
-
-        // Create a new Galaxy in the center of the screen
+        var main_galaxy;
         var galaxy_position = [canvas.width/2., canvas.height/2.],
             galaxy_velocity = [$("#vx").val(), $("#vy").val()];
+        main_galaxy = new LogarithmicGalaxy(galaxy_position, galaxy_velocity, 1.0);
+        main_galaxy.add_disk(parseInt($("#num_disk_stars").val()), 
+                    parseFloat($("#disk_radius").val()), 
+                    parseFloat($("#disk_dispersion").val()));
         
-        var main_galaxy = new LogarithmicGalaxy(galaxy_position, galaxy_velocity, 1.);
+        var small_galaxy;
+        small_galaxy = new LogarithmicGalaxy([1200,100], [-0.5,0.], 0.25);
+        small_galaxy.add_disk(1000, 100, 0.);
+        small_galaxy.populations["disk"].color = "rgba(100,255,100,0.75)";
         
-        if ($('#add_disk').is(':checked')) {
-            main_galaxy.add_disk(parseInt($("#num_disk_stars").val()), 
-                parseFloat($("#disk_radius").val()), 
-                parseFloat($("#disk_dispersion").val())); // % dispersion
-        }
-        
-        if ($('#add_bulge').is(':checked')) {
-            main_galaxy.add_bulge(parseInt($("#num_bulge_stars").val()), 
-                parseFloat($("#disk_radius").val())/8., 
-                parseFloat($("#bulge_dispersion").val()));
-        }
-        
-        var merger_galaxy = new LogarithmicGalaxy([700., 200.], [0,0], 1.0);
-        merger_galaxy.add_disk(100, 100, 0); // % dispersion
-        //var merger_galaxy;
-        
-        function restart() {
-            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-            stop();
-            create_galaxy();
-            start();
-        }
-        
-        function refresh() {
-            stop();
-            var galaxy_velocity = [$("#vx").val(), $("#vy").val()];
-            main_galaxy.velocity = galaxy_velocity;
-            
-            if (!$('#add_disk').is(':checked')) {
-                colors["disk"] = "rgba(0,0,0,0.)";
-            } else {
-                colors["disk"] = "rgba(215, 215, 215, 0.5)";
-            }
-            if (!$('#add_bulge').is(':checked')) {
-                colors["bulge"] = "rgba(0,0,0,0.)";
-            } else {
-                colors["bulge"] = "rgba(217, 100, 100, 0.85)";
-            }
-            dt = $('#dt').val()
-            start();
-        }
+        var simulation = new GalaxySimulation(canvas);
+        simulation.galaxies["main"] = main_galaxy;
+        simulation.galaxies["small"] = small_galaxy;
         
         function draw_update() {
             context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-            main_galaxy.draw(context, colors);
-            //main_galaxy.draw(context, {"disk" : "rgba(255,0,0,0.5)"});
-            main_galaxy.update(dt);
+            simulation.draw();
+            simulation.update(1.);
             
-            merger_galaxy.draw(context, colors);
-            //merger_galaxy.draw(context, {"disk" : "rgba(0,255,0,0.5)"});
-            merger_galaxy.update(dt);
+            // Draw galaxy centers
+            context.beginPath();
+            context.fillStyle = "rgba(255,255,255,0.3)";
+            context.arc(main_galaxy.position[0], main_galaxy.position[1], 10, 0, Math.PI*2,true);
+            context.closePath();
+            context.fill();
+            
+            context.beginPath();
+            context.fillStyle = "rgba(100,255,100,0.3)";
+            context.arc(small_galaxy.position[0], small_galaxy.position[1], 10, 0, Math.PI*2,true);
+            context.closePath();
+            context.fill();
+            
+            //console.log(main_galaxy.velocity);
         }
         
-        function start() {
-            stop();
-            interval = setInterval(draw_update, 10);
-        }
-        
-        function stop() {
-            window.clearInterval(interval);
-        }
-        
-        //create_galaxy();
-        start();
+        //draw_update();
+        interval = setInterval(draw_update, 10);
     
     </script>
 </html>

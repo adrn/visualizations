@@ -6,6 +6,16 @@ var pi = 3.1415926;
 /* 
     Helper functions, e.g. coordinate transforms, etc. 
 */
+
+Array.prototype.vectorAdd = function(other) {
+    var output_array = new Array();
+    
+    for (var ii=0; ii < this.length; ii++) {
+        output_array.push(other[ii] + this[ii]);
+    }
+    return output_array;
+};
+
 function subclass(constructor, superConstructor) {
 	function surrogateConstructor() { }
 
@@ -29,7 +39,7 @@ function cylindrical_to_cartesian(r, phi, z) {
     }
 }
 
-function cartesian_to_cylindrival(x, y, z) {
+function cartesian_to_cylindrical(x, y, z) {
     /*  Convert cartesian coordinates to cylindrical. The cartesian values must 
         already be shifted to be relative to the center of the coordinate system!
     */
@@ -44,63 +54,200 @@ function cartesian_to_cylindrival(x, y, z) {
     }
 }
 
-function update_stellar_population(stellar_pop, galaxy, dt) {
-    /*  Uses the Leapfrog method to integrate the positions of this stellar 
-        population forward by one timestep, specified by dt. Note that 
+function update_galaxy_positions(galaxy_simulation, dt) {
+    /*  Uses the Leapfrog method to integrate the positions of the galaxy
+        potential centers forward by one timestep, specified by dt. Note that 
         Leapfrog is only symplectic if the timestep remains constant.
     */
     
-    var new_positions = new Array(),
-        new_velocities = new Array();
+    for (var key in galaxy_simulation.galaxies) {
+        if (galaxy_simulation.galaxies.hasOwnProperty(key)) {
+            // Get galaxy object
+            var galaxy = galaxy_simulation.galaxies[key];
+                    
+            // Get the old positions and velocities
+            var position = galaxy.position;
+            var velocity = galaxy.velocity;
+            var num_dimensions = position.length;
+            
+            var ai = new Array();
+            for (var ii=0; ii < num_dimensions; ii++) {
+                ai.push(0.);
+            }
+            
+            // Compute the total acceleration at a point due to all galaxies
+            for (var key in galaxy_simulation.galaxies) {
+                if ( galaxy_simulation.galaxies.hasOwnProperty(key) && (galaxy_simulation.galaxies[key] != galaxy) ) {
+                    ai = ai.vectorAdd(galaxy_simulation.galaxies[key].newton_acceleration_at(position));
+                }
+            }
+            
+            // Compute the new positions    
+            var new_position = new Array();
+            for (var ii=0; ii < num_dimensions; ii++) {
+                new_position.push(position[ii] + velocity[ii]*dt + 0.5*ai[ii]*dt*dt);
+            }
+            
+            var new_ai = new Array();
+            for (var ii=0; ii < num_dimensions; ii++) {
+                new_ai.push(0.);
+            }
+            
+            // Compute the total acceleration at a point due to all galaxies
+            for (var key in galaxy_simulation.galaxies) {
+                if ( galaxy_simulation.galaxies.hasOwnProperty(key) && (galaxy_simulation.galaxies[key] != galaxy) ) {
+                    new_ai = new_ai.vectorAdd(galaxy_simulation.galaxies[key].newton_acceleration_at(new_position));
+                }
+            }
+            
+            // Compute the new velocities
+            var new_velocity = new Array();
+            for (var ii=0; ii < num_dimensions; ii++) {
+                new_velocity.push(velocity[ii] + 0.5*(ai[ii] + new_ai[ii])*dt);
+            }
+            
+            galaxy.position = new_position;
+            galaxy.velocity = new_velocity;
 
-    for (var kk=0; kk < stellar_pop.positions.length; kk++) {
-        // Get the old positions and velocities
-        position = stellar_pop.positions[kk];
-        velocity = stellar_pop.velocities[kk];
-        
-        // Compute the new positions
-        var ai = galaxy.acceleration(position);
-        var new_position = new Array();
-        for (var ii=0; ii < position.length; ii++) {
-            // APW: check this! do I need to consider the galaxy velocity here?
-            new_position.push(position[ii] + velocity[ii]*dt + 0.5*ai[ii]*dt*dt);
         }
-        
-        // Compute the new velocities
-        var new_ai = galaxy.acceleration(new_position);
-        var new_velocity = new Array();
-        for (var ii=0; ii < velocity.length; ii++) {
-            // APW: check this! do I need to consider the galaxy velocity here?
-            new_velocity.push(velocity[ii] + 0.5*(ai[ii] + new_ai[ii])*dt);
-        }
-        
-        new_positions.push(new_position);
-        new_velocities.push(new_velocity);
     }
-    stellar_pop.positions = new_positions;
-    stellar_pop.velocities = new_velocities;
+}
+
+function update_stellar_populations(galaxy_simulation, dt) {
+    /*  Uses the Leapfrog method to integrate the positions of stellar 
+        populations forward by one timestep, specified by dt. Note that 
+        Leapfrog is only symplectic if the timestep remains constant.
+    */
+    
+    // loop over stellar populations?
+    var number_of_galaxies = galaxy_simulation.num_galaxies();
+    
+    for (var key in galaxy_simulation.galaxies) {
+        if (galaxy_simulation.galaxies.hasOwnProperty(key)) {
+            // Get galaxy object
+            var galaxy = galaxy_simulation.galaxies[key]
+            
+            for (var key in galaxy.populations) {
+                if (galaxy.populations.hasOwnProperty(key)) {
+                    var stellar_pop = galaxy.populations[key];
+                    
+                    var new_positions = new Array(),
+                        new_velocities = new Array();
+                    
+                    for (var kk=0; kk < stellar_pop.positions.length; kk++) {
+                        // Get the old positions and velocities
+                        var position = stellar_pop.positions[kk];
+                        var velocity = stellar_pop.velocities[kk];
+                        var num_dimensions = position.length;
+                        
+                        var ai = new Array();
+                        for (var ii=0; ii < num_dimensions; ii++) {
+                            ai.push(0.);
+                        }
+                        
+                        // Compute the total acceleration at a point due to all galaxies
+                        for (var key in galaxy_simulation.galaxies) {
+                            if (galaxy_simulation.galaxies.hasOwnProperty(key)) {
+                                ai = ai.vectorAdd(galaxy_simulation.galaxies[key].acceleration_at(position));
+                            }
+                        }
+                        
+                        // Compute the new positions    
+                        var new_position = new Array();
+                        for (var ii=0; ii < num_dimensions; ii++) {
+                            new_position.push(position[ii] + velocity[ii]*dt + 0.5*ai[ii]*dt*dt);
+                        }
+                        
+                        var new_ai = new Array();
+                        for (var ii=0; ii < num_dimensions; ii++) {
+                            new_ai.push(0.);
+                        }
+                        
+                        // Compute the total acceleration at a point due to all galaxies
+                        for (var key in galaxy_simulation.galaxies) {
+                            if (galaxy_simulation.galaxies.hasOwnProperty(key)) {
+                                new_ai = new_ai.vectorAdd(galaxy_simulation.galaxies[key].acceleration_at(new_position));
+                            }
+                        }
+                        
+                        // Compute the new velocities
+                        var new_velocity = new Array();
+                        for (var ii=0; ii < num_dimensions; ii++) {
+                            // APW: check this! do I need to consider the galaxy velocity here?
+                            new_velocity.push(velocity[ii] + 0.5*(ai[ii] + new_ai[ii])*dt);
+                        }
+                        
+                        new_positions.push(new_position);
+                        new_velocities.push(new_velocity);
+                    }
+                    stellar_pop.positions = new_positions;
+                    stellar_pop.velocities = new_velocities;
+                }
+            }
+        }
+    }
 }
 
 /*
     Objects
 */
+
+function GalaxySimulation(canvas) {
+    this.canvas = canvas;
+    this.galaxies = {};
+    
+    this.num_galaxies = function() {
+        var num = 0;
+        for (var key in this.galaxies) {
+            if (this.galaxies.hasOwnProperty(key)) {
+                num++;
+            }
+        }
+    }
+    
+    this.update = function(dt) {
+        if (dt == undefined) {
+            dt = 1.
+        }
+        
+        for (var key in this.galaxies) {
+            if (this.galaxies.hasOwnProperty(key)) {
+                // Update galaxy potential positions
+                update_galaxy_positions(this, dt);
+                
+                // Update galaxy star positions
+                update_stellar_populations(this, dt);
+            }
+        }
+    }
+    
+    this.draw = function() {
+        for (var key in this.galaxies) {
+            if (this.galaxies.hasOwnProperty(key)) {
+                this.galaxies[key].draw(this.canvas.getContext('2d'));
+            }
+        }
+    }
+    
+    this.clear = function() {
+        this.galaxies = {};
+    }
+}
+
 function StellarPopulation(args) {
     this.name = args["name"];
     this.positions = args["positions"] || new Array();
     this.velocities = args["velocities"] || new Array();
+    this.color = args["color"] || "#ddd";
     
-    this.draw = function(context, color) {
-        if (color == undefined) {
-            color = "#ccc";
-        }
-        
+    this.draw = function(context) {
         var vel = this.velocities,
             pos = this.positions;
             
         for (var ii=0; ii < pos.length; ii++) {
-            total_vel = vel[ii][0]*vel[ii][0] + vel[ii][1]*vel[ii][1];
+            //total_vel = vel[ii][0]*vel[ii][0] + vel[ii][1]*vel[ii][1];
             context.beginPath();
-            context.fillStyle = color;
+            context.fillStyle = this.color;
             context.arc(pos[ii][0],pos[ii][1], 1, 0, Math.PI*2,true);
             context.closePath();
             context.fill();
@@ -108,7 +255,7 @@ function StellarPopulation(args) {
     }
 }
 
-function Galaxy(position, velocity) {
+function Galaxy(position, velocity, mass) {
     /*  This is the constructor for the "base" Galaxy object. The user must either supply an
         'acceleration' function, or subclass this object and create their own. The acceleration
         function should accept a list of positions and compute the accelerations along each dimension.
@@ -118,11 +265,19 @@ function Galaxy(position, velocity) {
         throw new Error("A galaxy must be created with a position and velocity");
     }
     
+    this.mass = parseFloat(mass) || 1.0;
+    
     // Starting position
-    this.position = position;
+    this.position = new Array();
+    for (var ii=0; ii < position.length; ii++) {
+        this.position.push(parseFloat(position[ii]));
+    }
     
     // Starting velocity
-    this.velocity = velocity;
+    this.velocity = new Array();
+    for (var ii=0; ii < velocity.length; ii++) {
+        this.velocity.push(parseFloat(velocity[ii]));
+    }
 	
 	// Initialize internal populations object
 	this.populations = {};
@@ -136,25 +291,6 @@ function Galaxy(position, velocity) {
         this.populations[population.name] = population;
     }
     
-    this.update = function(dt) {
-        // TODO: FIX THIS
-        /* Update each stellar population's positions and velocities */
-        
-        if (dt == undefined) {
-            dt = 1.0;
-        }
-        
-        for (var ii=0; ii < this.position.length; ii++) {
-            this.position[ii] += this.velocity[ii]*dt;
-        }
-        
-        for (var key in this.populations) {
-            if (this.populations.hasOwnProperty(key)) {
-                update_stellar_population(this.populations[key], this, dt);
-            }
-        }
-    }
-    
     this.draw = function(context, colors) {
         /* Draw all stellar populations to the given context */
         
@@ -164,7 +300,7 @@ function Galaxy(position, velocity) {
         // Loop over populations
         for (var key in this.populations) {
             if (this.populations.hasOwnProperty(key)) {
-                this.populations[key].draw(context, colors[key]);
+                this.populations[key].draw(context);
             }
         }
     }
@@ -192,11 +328,11 @@ function Galaxy(position, velocity) {
             
             init_pos.push(xy);
             
-            var mag_v = 1.4,
+            var mag_v = 1.4*Math.sqrt(this.mass),
                 vx = -mag_v * Math.sin(init_phi) + (Math.random()-0.5)*(dispersion/100.0/1.41),
                 vy = mag_v * Math.cos(init_phi) + (Math.random()-0.5)*(dispersion/100.0/1.41);
-                
-            init_vel.push([vx, vy]);
+    
+            init_vel.push([vx + this.velocity[0], vy + this.velocity[1]]);
             gg++;
         }
         
@@ -228,10 +364,10 @@ function Galaxy(position, velocity) {
             
             init_pos.push(xy);
             
-            var mag_v = 0.6,
+            var mag_v = 1.4*Math.sqrt(this.mass),
                 vx = -mag_v * Math.sin(init_phi) + (Math.random()-0.5)*(dispersion/100.0/1.41),
                 vy = mag_v * Math.cos(init_phi) + (Math.random()-0.5)*(dispersion/100.0/1.41);
-            init_vel.push([vx, vy]);
+            init_vel.push([vx + this.velocity[0], vy + this.velocity[1]]);
             gg++;
         }
         
@@ -245,12 +381,11 @@ function Galaxy(position, velocity) {
 function LogarithmicGalaxy(position, velocity, mass) {
     /*  This represents a 2D logarithmic galactic potential. */
     
-    var _galaxy = new Galaxy(position, velocity);
+    var _galaxy = new Galaxy(position, velocity, mass);
 	_galaxy.U = 0.8;
 	_galaxy.C = 1.0;
-    _galaxy.mass = parseFloat(mass);
     
-	_galaxy.acceleration = function(xy) {
+	_galaxy.acceleration_at = function(xy) {
 	    //console.log(_galaxy.mass);
         // Set the galaxy position
         var xdotdot = - _galaxy.mass * (2 * _galaxy.U*_galaxy.U * (xy[0]-_galaxy.position[0])) / (_galaxy.U*_galaxy.U*(xy[0]-_galaxy.position[0])*(xy[0]-_galaxy.position[0]) + (xy[1]-_galaxy.position[1])*(xy[1]-_galaxy.position[1]) + _galaxy.C*_galaxy.C*_galaxy.U*_galaxy.U),
@@ -258,5 +393,19 @@ function LogarithmicGalaxy(position, velocity, mass) {
         
         return [xdotdot, ydotdot];
     }
+    
+    _galaxy.newton_acceleration_at = function(xy) {
+	    //console.log(_galaxy.mass);
+        // Set the galaxy position
+        var x = (xy[0]-_galaxy.position[0]),
+            y = (xy[1]-_galaxy.position[1]);
+        var r = Math.sqrt(x*x + y*y);
+        
+        var xdotdot = - 100. * _galaxy.mass * x / (r*r*r),
+            ydotdot = - 100. * _galaxy.mass * y / (r*r*r);
+
+        return [xdotdot, ydotdot];
+    }
+    
     return _galaxy;
 }
