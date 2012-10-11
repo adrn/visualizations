@@ -1,0 +1,237 @@
+<!--
+    I need to consider the global potential when I update the positions and velocities, so I need 
+    to have some kind of way to keep track of the potential due to all galaxies when computing the
+    accelerations...
+-->
+
+<html>
+    <head>
+        <title>adrn | galaxy</title>
+ 
+        <!-- Style / css -->
+        <link href='http://fonts.googleapis.com/css?family=Carrois+Gothic' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" type="text/css" media="screen" href="../css/colorbrewer.css" />
+        <link rel="stylesheet" type="text/css" href="../css/style.css" />
+        <link rel="stylesheet" type="text/css" href="galaxy.css" />
+        
+        <!-- Javascript dependencies -->
+        <script type="text/javascript" src="../js/jquery-1.6.1.min.js"></script>
+        <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+        <script type="text/javascript" src="../js/d3.v2.min.js"></script>
+        <script src="http://d3js.org/d3.v2.js"></script>
+        <script type="text/javascript" src="../js/colorbrewer.js"></script>
+        <script type="text/javascript" src="galaxy.js"></script>
+	
+        <script type="text/javascript">    
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-11936482-10']);
+            _gaq.push(['_trackPageview']);
+            
+            (function() {
+                var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+            })();
+        </script>
+	
+    </head>
+    
+    <body bgcolor="black">
+        <div id="header">
+            <h1>Logarithmic Potential</h1><br/>
+            <img src="potential.png" width="100%" /><br/><br/>
+            <!--<hr size=1 width="70%"/>-->
+            
+            <table cellpadding=5 cellspacing=10 width="100%">
+                <tr>
+                    <td colspan=2 class="label" style="text-align: center;">
+                        &Delta;t: <input type="text" id="dt" value="1" size=5 />
+                    </td>
+                </tr>
+                
+                <!-- Dark Matter Halo -->
+                <tr>
+                    <td class="component_name" colspan=2>Halo</td>
+                </tr>
+                <tr>
+                    <td colspan=2 class="label" style="text-align: center;">U:
+                        <input type="range" style="width: 100px;" id="log_U" min="0.707" max="1.08" value="0.8" step="0.01" onChange="$('#U_display').text($(this).val());"/>
+                        <span id="U_display">0.800</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">Velocity:</td>
+                    <td>
+                        v<sub>x</sub>: <input type="text" id="vx" value="0.0" size=8 /><br/>
+                        v<sub>y</sub>: <input type="text" id="vy" value="0.0" size=8 />
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td colspan=2></td>
+                </tr>
+                
+                <!-- Disk -->
+                <tr>
+                    <td class="component_name" colspan=2>Disk&nbsp;&nbsp;<input type="checkbox" id="add_disk" checked=checked onChange="refresh();" /></td>
+                </tr>
+                <tr>
+                    <td class="label"># of stars:</td>
+                    <td><input type="text" id="num_disk_stars" value="3000" size=10 /></td>
+                </tr>
+                <tr>
+                    <td class="label">Radius:</td>
+                    <td><input type="text" id="disk_radius" value="5" size=8 />&nbsp;px</td>
+                </tr>
+                <tr>
+                    <td class="label">Dispersion (%):</td>
+                    <td><input type="text" id="disk_dispersion" value="10" size=5 />&nbsp;%</td>
+                </tr>
+                
+                <tr>
+                    <td colspan=2></td>
+                </tr>
+                
+                <!-- Bulge -->
+                <tr>
+                    <td class="component_name" colspan=2>Bulge&nbsp;&nbsp;<input type="checkbox" id="add_bulge" checked=checked onChange="refresh();" /></td>
+                </tr>
+                <tr>
+                    <td class="label"># of stars:</td>
+                    <td><input type="text" id="num_bulge_stars" value="500" size=10 /></td>
+                </tr>
+                <tr>
+                    <td class="label">Dispersion (%):</td>
+                    <td><input type="text" id="bulge_dispersion" value="100" size=5 />&nbsp;%</td>
+                </tr>
+
+            </table>
+            <br/><br/>
+            <input type="button" value="Start" onClick="start();" />
+            <input type="button" value="Pause" onClick="stop();" />
+            <input type="button" value="Refresh" onClick="refresh();" />
+            <input type="button" value="Restart" onClick="restart();" />
+        </div>
+        
+        <canvas id="bgcanvas"></canvas>
+        
+        <div id="footer">
+            adrn at astro.columbia.edu
+        </div>
+    </body>
+    
+    <script type="text/javascript">
+        var canvas = document.getElementById('bgcanvas'),
+            context = canvas.getContext('2d');
+        
+        // Fill the browser with the canvas
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        // Default disk radius is canvas.height/3.
+        $("#disk_radius").val(parseInt(canvas.height/3.));
+        
+        var interval,
+            colors = {"bulge" : "rgba(217, 100, 100, 0.85)", "disk" : "rgba(215, 215, 215, 0.5)"},
+            dt = $('#dt').val();
+        
+        function create_galaxy() {
+            // Create a new Galaxy in the center of the screen
+            var galaxy_position = [canvas.width/2., canvas.height/2.],
+                galaxy_velocity = [$("#vx").val(), $("#vy").val()];
+            galaxy = new LogarithmicGalaxy(galaxy_position, galaxy_velocity);
+            
+            if ($('#add_disk').is(':checked')) {
+                galaxy.add_disk(number=parseInt($("#num_disk_stars").val()), 
+                    radius=parseFloat($("#disk_radius").val()), 
+                    dispersion=parseFloat($("#disk_dispersion").val())); // % dispersion
+            }
+            
+            if ($('#add_bulge').is(':checked')) {
+                galaxy.add_bulge(number=parseInt($("#num_bulge_stars").val()), 
+                    radius=parseFloat($("#disk_radius").val())/8., 
+                    dispersion=parseFloat($("#bulge_dispersion").val()));
+            }
+            
+            /*
+            merger_galaxy = new LogarithmicGalaxy([200., 200.], galaxy_velocity);
+            merger_galaxy.add_disk(parseInt(100), 
+                    parseFloat(100.), 
+                    parseFloat(0.)); // % dispersion
+            */
+
+        }
+
+        // Create a new Galaxy in the center of the screen
+        var galaxy_position = [canvas.width/2., canvas.height/2.],
+            galaxy_velocity = [$("#vx").val(), $("#vy").val()];
+        
+        var main_galaxy = new LogarithmicGalaxy(galaxy_position, galaxy_velocity, 1.);
+        
+        if ($('#add_disk').is(':checked')) {
+            main_galaxy.add_disk(parseInt($("#num_disk_stars").val()), 
+                parseFloat($("#disk_radius").val()), 
+                parseFloat($("#disk_dispersion").val())); // % dispersion
+        }
+        
+        if ($('#add_bulge').is(':checked')) {
+            main_galaxy.add_bulge(parseInt($("#num_bulge_stars").val()), 
+                parseFloat($("#disk_radius").val())/8., 
+                parseFloat($("#bulge_dispersion").val()));
+        }
+        
+        var merger_galaxy = new LogarithmicGalaxy([700., 200.], [0,0], 1.0);
+        merger_galaxy.add_disk(100, 100, 0); // % dispersion
+        //var merger_galaxy;
+        
+        function restart() {
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            stop();
+            create_galaxy();
+            start();
+        }
+        
+        function refresh() {
+            stop();
+            var galaxy_velocity = [$("#vx").val(), $("#vy").val()];
+            main_galaxy.velocity = galaxy_velocity;
+            
+            if (!$('#add_disk').is(':checked')) {
+                colors["disk"] = "rgba(0,0,0,0.)";
+            } else {
+                colors["disk"] = "rgba(215, 215, 215, 0.5)";
+            }
+            if (!$('#add_bulge').is(':checked')) {
+                colors["bulge"] = "rgba(0,0,0,0.)";
+            } else {
+                colors["bulge"] = "rgba(217, 100, 100, 0.85)";
+            }
+            dt = $('#dt').val()
+            start();
+        }
+        
+        function draw_update() {
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            main_galaxy.draw(context, colors);
+            //main_galaxy.draw(context, {"disk" : "rgba(255,0,0,0.5)"});
+            main_galaxy.update(dt);
+            
+            merger_galaxy.draw(context, colors);
+            //merger_galaxy.draw(context, {"disk" : "rgba(0,255,0,0.5)"});
+            merger_galaxy.update(dt);
+        }
+        
+        function start() {
+            stop();
+            interval = setInterval(draw_update, 10);
+        }
+        
+        function stop() {
+            window.clearInterval(interval);
+        }
+        
+        //create_galaxy();
+        start();
+    
+    </script>
+</html>
