@@ -41,13 +41,15 @@
     <body bgcolor="black">
         <div id="header">
             <h1>Logarithmic Potential</h1><br/>
-            <img src="potential.png" width="100%" /><br/><br/>
+            <p class="control_panel"><img src="potential.png" width="100%" /><br/><br/></p>
             <!--<hr size=1 width="70%"/>-->
             
-            <table cellpadding=5 cellspacing=10 width="100%">
+            <table cellpadding=5 cellspacing=10 width="100%" class="control_panel">
                 <tr>
                     <td colspan=2 class="label" style="text-align: center;">
                         &Delta;t: <input type="text" id="dt" value="1" size=5 />
+                        &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;
+                        Trails: <input type="checkbox" id="trails" onchange="toggle_trails();" />
                     </td>
                 </tr>
                 
@@ -57,8 +59,8 @@
                 </tr>
                 <tr>
                     <td colspan=2 class="label" style="text-align: center;">U:
-                        <input type="range" style="width: 100px;" id="log_U" min="0.707" max="1.08" value="0.8" step="0.01" onChange="$('#U_display').text($(this).val());"/>
-                        <span id="U_display">0.800</span>
+                        <input type="range" style="width: 100px;" id="log_U" min="0.707" max="1.08" value="0.8" step="0.01" onChange="$('#U_display').val($(this).val());"/>
+                        <input type="text" id="U_display" value="0.8" size=4 />
                     </td>
                 </tr>
                 <tr>
@@ -75,7 +77,7 @@
                 
                 <!-- Disk -->
                 <tr>
-                    <td class="component_name" colspan=2>Disk&nbsp;&nbsp;<input type="checkbox" id="add_disk" checked=checked onChange="refresh();" /></td>
+                    <td class="component_name" colspan=2>Disk<!--&nbsp;&nbsp;<input type="checkbox" id="add_disk" checked=checked onChange="refresh();" />--></td>
                 </tr>
                 <tr>
                     <td class="label"># of stars:</td>
@@ -95,6 +97,7 @@
                 </tr>
                 
                 <!-- Bulge -->
+                <!--
                 <tr>
                     <td class="component_name" colspan=2>Bulge&nbsp;&nbsp;<input type="checkbox" id="add_bulge" checked=checked onChange="refresh();" /></td>
                 </tr>
@@ -106,13 +109,16 @@
                     <td class="label">Dispersion (%):</td>
                     <td><input type="text" id="bulge_dispersion" value="100" size=5 />&nbsp;%</td>
                 </tr>
-
+                -->
+                <tr><td colspan="2"><br/></td></tr>
             </table>
-            <br/><br/>
             <input type="button" value="Start" onClick="start();" />
             <input type="button" value="Pause" onClick="stop();" />
-            <input type="button" value="Refresh" onClick="refresh();" />
+            <!--<input type="button" value="Refresh" onClick="refresh();" />-->
             <input type="button" value="Restart" onClick="restart();" />
+            <br/><br/>
+            <input type="button" id="hide_show_button" value="Hide Menu" onClick="toggle_menu();" /><!-- control_panel -->
+
         </div>
         
         <canvas id="bgcanvas"></canvas>
@@ -123,8 +129,18 @@
     </body>
     
     <script type="text/javascript">
-        var canvas = document.getElementById('bgcanvas'),
-            context = canvas.getContext('2d');
+        function toggle_menu() {
+            if ($(".control_panel").css("display") != "none") {
+                $(".control_panel").css("display", "none");
+                $("#hide_show_button").val("Show Menu");
+            } else {
+                $(".control_panel").css("display", "block");
+                $("#hide_show_button").val("Hide Menu");
+            }
+        }
+        
+        var canvas = document.getElementById('bgcanvas');
+        var context = canvas.getContext('2d');
         
         // Fill the browser with the canvas
         canvas.width = window.innerWidth;
@@ -134,49 +150,67 @@
         $("#disk_radius").val(parseInt(canvas.height/3.));
         
         var interval,
-            colors = {"bulge" : "rgba(217, 100, 100, 0.85)", "disk" : "rgba(215, 215, 215, 0.5)"},
-            dt = $('#dt').val();
+            dt = $('#dt').val(),
+            draw_trails = false;
         
-        var main_galaxy;
-        var galaxy_position = [canvas.width/2., canvas.height/2.],
-            galaxy_velocity = [$("#vx").val(), $("#vy").val()];
-        main_galaxy = new LogarithmicGalaxy(galaxy_position, galaxy_velocity, 1.0);
-        main_galaxy.add_disk(parseInt($("#num_disk_stars").val()), 
-                    parseFloat($("#disk_radius").val()), 
-                    parseFloat($("#disk_dispersion").val()));
-        
-        var small_galaxy;
-        small_galaxy = new LogarithmicGalaxy([1200,100], [-0.5,0.], 0.25);
-        small_galaxy.add_disk(1000, 100, 0.);
-        small_galaxy.populations["disk"].color = "rgba(100,255,100,0.75)";
-        
-        var simulation = new GalaxySimulation(canvas);
-        simulation.galaxies["main"] = main_galaxy;
-        simulation.galaxies["small"] = small_galaxy;
-        
-        function draw_update() {
-            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-            simulation.draw();
-            simulation.update(1.);
-            
-            // Draw galaxy centers
-            context.beginPath();
-            context.fillStyle = "rgba(255,255,255,0.3)";
-            context.arc(main_galaxy.position[0], main_galaxy.position[1], 10, 0, Math.PI*2,true);
-            context.closePath();
-            context.fill();
-            
-            context.beginPath();
-            context.fillStyle = "rgba(100,255,100,0.3)";
-            context.arc(small_galaxy.position[0], small_galaxy.position[1], 10, 0, Math.PI*2,true);
-            context.closePath();
-            context.fill();
-            
-            //console.log(main_galaxy.velocity);
+        function toggle_trails() {
+            if ($('#trails').is(':checked')) {
+                draw_trails = true;
+            } else {
+                draw_trails = false;
+            }
         }
         
-        //draw_update();
-        interval = setInterval(draw_update, 10);
+        var simulation = new GalaxySimulation(canvas);
+        var main_galaxy;
+        var small_galaxy; // right now limit to one!
+        
+        function restart() {
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            simulation.galaxies = {}
+            setup_simulation(simulation);
+            start();
+        }
+        
+        function setup_simulation(simulation) {
+            var galaxy_position = [canvas.width/2., canvas.height/2.],
+                galaxy_velocity = [$("#vx").val(), $("#vy").val()];
+                
+            main_galaxy = new LogarithmicGalaxy(galaxy_position, galaxy_velocity, 1.0);
+            main_galaxy.add_disk(parseInt($("#num_disk_stars").val()), 
+                        parseFloat($("#disk_radius").val()), 
+                        parseFloat($("#disk_dispersion").val()));
+            main_galaxy.U = $("#U_display").val()
+                        
+            simulation.galaxies["main"] = main_galaxy;
+        }
+        
+        function start() {
+            stop();
+            interval = setInterval(draw_update, 10);
+        }
+        
+        function stop() {
+            window.clearInterval(interval);
+        }
+        
+        function draw_update() {
+            if (draw_trails != true) {
+                context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+            }
+            simulation.draw();
+            simulation.update(1.);
+        }
+        
+        setup_simulation(simulation);
+        start();
+        
+        $('canvas').mousedown(function(e){
+            small_galaxy = new LogarithmicGalaxy([e.pageX, e.pageY], [0.,0.], 0.25);
+            small_galaxy.add_disk(1000, 100, 0.);
+            small_galaxy.populations["disk"].color = "rgba(241, 163, 64,0.75)";        
+            simulation.galaxies["small"] = small_galaxy;
+        });
     
     </script>
 </html>

@@ -7,6 +7,17 @@ var pi = 3.1415926;
     Helper functions, e.g. coordinate transforms, etc. 
 */
 
+function cloneObject(source) {
+    for (i in source) {
+        if (typeof source[i] == 'source') {
+            this[i] = new cloneObject(source[i]);
+        }
+        else{
+            this[i] = source[i];
+	}
+    }
+}
+
 Array.prototype.vectorAdd = function(other) {
     var output_array = new Array();
     
@@ -188,6 +199,42 @@ function update_stellar_populations(galaxy_simulation, dt) {
     }
 }
 
+function distance(pos1, pos2) {
+    if (pos1.length != pos2.length) {
+        throw new Error("distance(): Position vectors have different length!");
+    }
+    
+    var dist = 0.;
+    for (var ii=0; ii < pos1.length; ii++) {
+        dist += (pos1[ii]-pos2[ii])*(pos1[ii]-pos2[ii]);
+    }
+    return Math.sqrt(dist);
+}
+
+/*
+function merge_galaxies(galaxy, simulation) {
+    var galaxies = simulation.galaxies;
+    
+    for (var key in galaxies) {
+        if (galaxies.hasOwnProperty(key)) {
+            if ((galaxy != galaxies[key]) && (distance(galaxy.position, galaxies[key].position) < 10.)) {
+                console.log("HERE HERE HERE");
+                if (galaxy.mass > galaxies[key].mass) {
+                    // merge galaxies[key] into galaxy
+                    // TODO: this is a hack, and should be more general!
+                    galaxy.populations["merged"] = cloneObject(galaxies[key].populations["disk"]);
+                    delete simulation.galaxies[key];
+                } else {
+                    // merge galaxy into galaxies[key]
+                    galaxies[key].populations["merged"] = cloneObject(galaxy.populations["disk"]);
+                    galaxy = undefined;
+                }
+            }
+        }
+    }
+}
+*/
+
 /*
     Objects
 */
@@ -209,22 +256,31 @@ function GalaxySimulation(canvas) {
         if (dt == undefined) {
             dt = 1.
         }
+        // Update galaxy potential positions
+        update_galaxy_positions(this, dt);
         
+        // Update galaxy star positions
+        update_stellar_populations(this, dt);
+        
+        /*
         for (var key in this.galaxies) {
-            if (this.galaxies.hasOwnProperty(key)) {
-                // Update galaxy potential positions
-                update_galaxy_positions(this, dt);
-                
-                // Update galaxy star positions
-                update_stellar_populations(this, dt);
+            if (this.galaxies.hasOwnProperty(key)) {        
+                // Check galaxies to see if any are close enough to merge
+                merge_galaxies(this.galaxies[key], this);
             }
-        }
+        }*/
     }
     
     this.draw = function() {
         for (var key in this.galaxies) {
             if (this.galaxies.hasOwnProperty(key)) {
                 this.galaxies[key].draw(this.canvas.getContext('2d'));
+                
+                context.beginPath();
+                context.fillStyle = "rgba(153, 142, 195,0.75)";
+                context.arc(this.galaxies[key].position[0], this.galaxies[key].position[1], 10, 0, Math.PI*2,true);
+                context.closePath();
+                context.fill();
             }
         }
     }
