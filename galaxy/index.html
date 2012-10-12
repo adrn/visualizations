@@ -81,7 +81,7 @@
                 </tr>
                 <tr>
                     <td class="label"># of stars:</td>
-                    <td><input type="text" id="num_disk_stars" value="3000" size=10 /></td>
+                    <td><input type="text" id="num_disk_stars" value="2000" size=10 /></td>
                 </tr>
                 <tr>
                     <td class="label">Radius:</td>
@@ -164,6 +164,7 @@
         var simulation = new GalaxySimulation(canvas);
         var main_galaxy;
         var small_galaxy; // right now limit to one!
+        var small_mass = 0.8;
         
         function restart() {
             context.clearRect(0, 0, context.canvas.width, context.canvas.height);
@@ -205,11 +206,52 @@
         setup_simulation(simulation);
         start();
         
+        var mouse_is_down = false,
+            mouse_x0 = 0.,
+            mouse_y0 = 0.,
+            mouse_x1 = 0.,
+            mouse_y1 = 0.;
+            
+        var small_galaxy_velocity = [0.,0.];
+        
         $('canvas').mousedown(function(e){
-            small_galaxy = new LogarithmicGalaxy([e.pageX, e.pageY], [0.,0.], 0.25);
-            small_galaxy.add_disk(1000, 100, 0.);
+            mouse_is_down = true;
+            
+            mouse_x0 = e.pageX;
+            mouse_y0 = e.pageY;
+        });
+        
+        $('canvas').mouseup(function(e){
+            mouse_is_down = false;
+            
+            small_galaxy = new LogarithmicGalaxy([e.pageX, e.pageY], small_galaxy_velocity, small_mass);
+            small_galaxy.add_disk(500, parseFloat($("#disk_radius").val())*Math.pow(small_mass,0.75), 0.);
             small_galaxy.populations["disk"].color = "rgba(241, 163, 64,0.75)";        
             simulation.galaxies["small"] = small_galaxy;
+        });
+        
+        $('canvas').mousemove(function(e){
+            if (mouse_is_down) {
+                context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+                simulation.draw();
+                
+                mouse_x1 = e.pageX;
+                mouse_y1 = e.pageY;
+                var xx = mouse_x0-mouse_x1,
+                    yy = mouse_y0-mouse_y1;
+                
+                small_galaxy_velocity = [-xx/40., -yy/40.];
+                
+                context.lineWidth = 1;
+                context.beginPath();
+                context.moveTo(mouse_x0, mouse_y0);
+                context.lineTo(mouse_x1, mouse_y1);
+                context.strokeStyle = "#ff0000";
+                context.stroke();
+                
+                //var r = Math.sqrt(xx*xx + yy*yy);
+                // TODO: instead of velocity, maybe convert r to number of stars / mass of galaxy?
+            }
         });
     
     </script>
