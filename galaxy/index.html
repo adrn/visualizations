@@ -63,13 +63,14 @@
                         <input type="text" id="U_display" value="0.8" size=4 />
                     </td>
                 </tr>
+                <!--
                 <tr>
                     <td class="label">Velocity:</td>
                     <td>
                         v<sub>x</sub>: <input type="text" id="vx" value="0.0" size=8 /><br/>
                         v<sub>y</sub>: <input type="text" id="vy" value="0.0" size=8 />
                     </td>
-                </tr>
+                </tr>-->
                 
                 <tr>
                     <td colspan=2></td>
@@ -90,6 +91,19 @@
                 <tr>
                     <td class="label">Dispersion (%):</td>
                     <td><input type="text" id="disk_dispersion" value="10" size=5 />&nbsp;%</td>
+                </tr>
+                
+                
+                <tr>
+                    <td class="component_name" colspan=2 style="color: rgba(241, 163, 64,0.75);">Merger Disk<!--&nbsp;&nbsp;<input type="checkbox" id="add_disk" checked=checked onChange="refresh();" />--></td>
+                </tr>
+                <tr>
+                    <td class="label"># of stars:</td>
+                    <td><input type="text" id="num_disk_stars_small" value="1000" size=10 /></td>
+                </tr>
+                <tr>
+                    <td class="label">Mass ratio (relative):</td>
+                    <td><input type="text" id="small_mass" value="0.75" size=10 /></td>
                 </tr>
                 
                 <tr>
@@ -147,7 +161,7 @@
         canvas.height = window.innerHeight;
         
         // Default disk radius is canvas.height/3.
-        $("#disk_radius").val(parseInt(canvas.height/3.));
+        $("#disk_radius").val(parseInt(canvas.height/5.));
         
         var interval,
             dt = $('#dt').val(),
@@ -164,7 +178,7 @@
         var simulation = new GalaxySimulation(canvas);
         var main_galaxy;
         var small_galaxy; // right now limit to one!
-        var small_mass = 0.8;
+        var small_mass;
         
         function restart() {
             context.clearRect(0, 0, context.canvas.width, context.canvas.height);
@@ -175,7 +189,8 @@
         
         function setup_simulation(simulation) {
             var galaxy_position = [canvas.width/2., canvas.height/2.],
-                galaxy_velocity = [$("#vx").val(), $("#vy").val()];
+                galaxy_velocity = [0.,0.];
+                //galaxy_velocity = [$("#vx").val(), $("#vy").val()];
                 
             main_galaxy = new LogarithmicGalaxy(galaxy_position, galaxy_velocity, 1.0);
             main_galaxy.add_disk(parseInt($("#num_disk_stars").val()), 
@@ -219,15 +234,20 @@
             
             mouse_x0 = e.pageX;
             mouse_y0 = e.pageY;
+            
+            stop();
         });
         
         $('canvas').mouseup(function(e){
+            small_mass = parseFloat($("#small_mass").val()) || 0.75;
             mouse_is_down = false;
             
             small_galaxy = new LogarithmicGalaxy([e.pageX, e.pageY], small_galaxy_velocity, small_mass);
-            small_galaxy.add_disk(500, parseFloat($("#disk_radius").val())*Math.pow(small_mass,0.75), 0.);
+            small_galaxy.add_disk(parseFloat($("#num_disk_stars_small").val()), parseFloat($("#disk_radius").val())*Math.pow(small_mass,0.75), 0.);
             small_galaxy.populations["disk"].color = "rgba(241, 163, 64,0.75)";        
             simulation.galaxies["small"] = small_galaxy;
+            
+            start();
         });
         
         $('canvas').mousemove(function(e){

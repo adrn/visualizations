@@ -28,6 +28,7 @@
     text-align: right;
     font-size: 14pt;
     color: rgb(200, 200, 200);
+    width: 50%;
 }
 
 #header table td.component_name {
