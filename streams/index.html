@@ -1,0 +1,177 @@
+<html>
+    <head>
+        <title>adrn | streams</title>
+
+        <!-- Style / css -->
+        <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,700' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" type="text/css" media="screen" href="../css/colorbrewer.css" />
+        <link rel="stylesheet" type="text/css" href="../css/style.css" />
+        <link rel="stylesheet" type="text/css" href="streams.css" />
+
+        <!-- Javascript dependencies -->
+        <script type="text/javascript" src="html_help.js"></script>
+        <script type="text/javascript" src="streams.js"></script>
+        
+        <script type="text/javascript" src="../js/jquery-1.6.1.min.js"></script>
+        <script type="text/javascript" src="../js/d3.v2.min.js"></script>
+        <script type="text/javascript" src="../js/jstat-1.0.0.min.js"></script>
+        <script type="text/javascript" src="utils.js"></script>
+        
+        <!-- TODO: new google analytics stuff -->
+        <script type="text/javascript">
+        </script>
+
+    </head>
+
+    <body>
+        <div id="header">
+            <h1>Stream maker</h1>
+
+            <table cellpadding=5 cellspacing=10 width="100%" class="control_panel">
+                <tr>
+                    <td colspan=2 class="label">
+                        Trails: <input type="checkbox" id="trails" onchange="toggle_trails();" />
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="component_name" colspan=2>Potential</td>
+                </tr>
+                <tr>
+                    <td colspan=2 class="label">q<sub>z</sub>
+                        <input type="range" style="width: 100px;" id="qz" min="0.71" max="1.2" value="0.8" step="0.01" onChange="$('#qz_display').val($(this).val());"/>
+                        <input type="text" id="qz_display" value="0.8" size=4 />
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan=2 class="label">V<sub>c</sub>
+                        <input type="range" style="width: 100px;" id="vc" min="120" max="300" value="220" step="1." onChange="$('#vc_display').val($(this).val());"/>
+                        <input type="text" id="vc_display" value="220" size=4 /> km/s
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan=2></td>
+                </tr>
+
+                <tr>
+                    <td class="component_name" colspan=2>Next galaxy</td>
+                </tr>
+                <tr>
+                    <td class="label"># of stars:</td>
+                    <td><input type="text" id="num_stars" value="1000" size=10 /></td>
+                </tr>
+                <tr>
+                    <td class="label">Velocity disp:</td>
+                    <td><input type="text" id="v_disp" value="1" size=10 /> km/s</td>
+                </tr>
+                <tr>
+                    <td class="label">Length scale:</td>
+                    <td><input type="text" id="r_scale" value="1" size=10 /> kpc</td>
+                </tr>
+
+                <tr>
+                    <td colspan=2></td>
+                </tr>
+                
+            </table>
+            <input type="button" value="Start" onClick="start();" />
+            <input type="button" value="Pause" onClick="stop();" />
+            <input type="button" value="Restart" onClick="restart();" />
+            <input type="button" id="hide_show_button" value="&#x25B2;" onClick="toggle_menu();" /><!-- control_panel -->
+            <br/><br/>
+
+        </div>
+        
+        <!-- Main canvas for drawing -->
+        <canvas id="bgcanvas"></canvas>
+        
+        <!-- Note at bottom for credits -->
+        <div id="footer">
+            Adrian Price-Whelan // adrn at astro.columbia.edu // <a href="https://twitter.com/astrodrian">@astrodrian</a>
+        </div>
+    </body>
+
+    <script type="text/javascript">
+        // Get javascript references to the canvas and context
+        var canvas = document.getElementById('bgcanvas');
+        var context = canvas.getContext('2d');
+
+        // Fill the browser with the canvas
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        var interval,
+            dt = 1.,
+            draw_trails = false,
+            new_galaxy_velocity = [0.,0.],
+            pixel_scale=4.;
+
+        // Define the global simulation object
+        var simulation = new StreamSimulation(canvas, pixel_scale);
+        simulation.draw(context);
+
+        // Variables for keeping track of mouse click / drag positions
+        var mouse_is_down = false,
+            mouse_x0 = 0.,
+            mouse_y0 = 0.,
+            mouse_x1 = 0.,
+            mouse_y1 = 0.;
+        
+        $('canvas').mousedown(function(e){
+            /* Store that the mouse is down, save position of click */
+            mouse_is_down = true;
+            mouse_x0 = e.pageX;
+            mouse_y0 = e.pageY;
+
+            // reset new galaxy velocity
+            new_galaxy_velocity = [0.,0.]
+            
+            // Stop simulation until mouse is up
+            stop();
+        });
+
+        $('canvas').mouseup(function(e){
+            /* Mouse is released, we can use the path drawn to get a velocity
+                and add a new galaxy.
+            */
+            mouse_is_down = false;
+
+            galaxy = new GaussianGalaxy([mouse_x0/pixel_scale, mouse_y0/pixel_scale], 
+                                        new_galaxy_velocity, 
+                                        $("#r_scale").val(), 
+                                        $("#v_disp").val(),
+                                        $("#num_stars").val());
+            simulation.galaxies.push(galaxy);
+            
+            wipe_context(context);
+            simulation.draw(context);
+                
+            //TODO: start();
+        });
+
+        $('canvas').mousemove(function(e){
+            if (mouse_is_down) {
+                wipe_context(context);
+                simulation.draw(context);
+                
+                // store present position of mouse
+                mouse_x1 = e.pageX;
+                mouse_y1 = e.pageY;
+                var dx = mouse_x0-mouse_x1,
+                    dy = mouse_y0-mouse_y1;
+                
+                // Scale from pixel units to km/s or whatever..
+                new_galaxy_velocity = [-dx/70, -dy/70];
+
+                context.lineWidth = 2;
+                context.beginPath();
+                context.moveTo(mouse_x0, mouse_y0);
+                context.lineTo(mouse_x1, mouse_y1);
+                context.strokeStyle = "#111111";
+                context.stroke();
+            }
+        });
+        
+    </script>
+</html>

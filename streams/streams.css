@@ -1,0 +1,72 @@
+body {
+    background: #333333;
+}
+
+#header {
+    margin: 20px;
+    padding: 10px;
+    position: absolute;
+    z-index: 10000;
+    color: #ccc;
+    background: #555;
+    border-radius: 5px;
+    width: 24%;
+    opacity: 0.75;
+    border: 1px solid #777;
+}
+
+#header table {
+    color: #ccc;
+}
+
+#header table td {
+    font-size: 10pt;
+}
+
+#U_display { 
+    font-size: 10pt;
+}
+
+#header table td.label {
+    text-align: left;
+    padding-left: 25px;
+    font-size: 14pt;
+    color: #ccc;
+    width: 50%;
+}
+
+#header table td.component_name {
+    text-align: left;
+    font-size: 16pt;
+    color: #E48000;
+    border-top: 1px solid rgb(150, 150, 150);
+}
+
+#header h1 {
+    color: #3871B2;
+    text-shadow: 1px 1px 3px #111;
+}
+
+#footer {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 10pt;
+    color: #bbb;
+}
+
+h1 {
+    font-weight: 400;
+}
+
+#hide_show_button {
+    border: 0px;
+    background: #666666;
+    color: white;
+    cursor: pointer;
+    font-family: "Courier";
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
