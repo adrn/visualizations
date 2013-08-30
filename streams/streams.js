@@ -1,17 +1,42 @@
-function StreamSimulation(canvas, pixel_scale) {
+var kms_to_kpcmyr = 0.0010227121650537077;
+
+function LogarithmicPotential(x0, y0, qz, vc) {
+    this.qz = qz;
+    this.vc = vc;
+    
+    this.x0 = x0;
+    this.y0 = y0;
+    
+    this.acceleration_at = function(xx,yy) {
+        
+        var x = xx-this.x0,
+            y = yy-this.y0;
+            
+        fac = this.vc*this.vc*kms_to_kpcmyr*kms_to_kpcmyr / (x*x + y*y/(this.qz*this.qz));
+        
+        var xdotdot = fac * x,
+            ydotdot = fac * y / (this.qz*this.qz);
+        
+        return [-xdotdot, -ydotdot];
+    }
+}
+
+function StreamSimulation(canvas, potential, pixel_scale) {
     /* pixel_scale = pix/kpc */
     this.canvas = canvas;
     this.galaxies = new Array();
     this.origin = [this.canvas.width / 2., this.canvas.height / 2.];
     this.pixel_scale = pixel_scale;
+    this.potential = potential;
     
     this.update = function(dt) {
         if (dt == undefined) {
             dt = 1.
         }
         
-        // ???
-        //update_stellar_populations(this, dt);
+        for (var ii=0; ii < this.galaxies.length; ii++) { 
+            this.galaxies[ii].update(this.potential, dt);
+        }
 
     }
 
@@ -44,10 +69,14 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
     
     if (color == undefined) {
         this.color = "#FECC5C";
+    } else {
+        this.color = color;
     }
     
     if (alpha == undefined) {
         this.alpha = 0.5;
+    } else {
+        this.alpha = alpha;
     }
     
     this.position = position;
@@ -71,12 +100,35 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
         for (var ii=0; ii < this.stars.length; ii++) {
             var x = this.stars[ii][0]*pixel_scale,
                 y = this.stars[ii][1]*pixel_scale;
-                
+            
             context.beginPath();
             context.fillStyle = this.color;
             context.arc(x, y, 1, 0, Math.PI*2,true);
             context.closePath();
             context.fill();
+        }
+    }
+    
+    this.update = function(potential, dt) {
+        for (var kk=0; kk < this.stars.length; kk++) {
+            var star = this.stars[kk];
+            
+            var x = star[0],
+                y = star[1],
+                vx = star[2],
+                vy = star[3];
+            
+            var ai = potential.acceleration_at(x, y);
+            
+            var new_x = x + vx*dt + 0.5*ai[0]*dt*dt,
+                new_y = y + vy*dt + 0.5*ai[1]*dt*dt;
+                
+            var new_ai = potential.acceleration_at(new_x, new_y);
+            
+            var new_vx = vx + 0.5*(ai[0] + new_ai[0])*dt,
+                new_vy = vy + 0.5*(ai[1] + new_ai[1])*dt;
+            
+            this.stars[kk] = [new_x, new_y, new_vx, new_vy];
         }
     }
 }

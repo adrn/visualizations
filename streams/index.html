@@ -14,7 +14,6 @@
         
         <script type="text/javascript" src="../js/jquery-1.6.1.min.js"></script>
         <script type="text/javascript" src="../js/d3.v2.min.js"></script>
-        <script type="text/javascript" src="../js/jstat-1.0.0.min.js"></script>
         <script type="text/javascript" src="utils.js"></script>
         
         <!-- TODO: new google analytics stuff -->
@@ -69,6 +68,18 @@
                     <td class="label">Length scale:</td>
                     <td><input type="text" id="r_scale" value="1" size=10 /> kpc</td>
                 </tr>
+                <tr>
+                    <td class="label">Color:</td>
+                    <td>
+                        <select id="galaxy_color">
+                            <option value="#2166AC">blue</option>
+                            <option value="#1A9850">green</option>
+                            <option value="#B2182B">red</option>
+                            <option value="#998EC3">purple</option>
+                            <option value="#FFFFBF">yellow</option>
+                        </select>
+                    </td>
+                </tr>
 
                 <tr>
                     <td colspan=2></td>
@@ -107,8 +118,15 @@
             new_galaxy_velocity = [0.,0.],
             pixel_scale=4.;
 
+        // Define the potential
+        var x0 = canvas.width / 2. / pixel_scale,
+            y0 = canvas.height / 2. / pixel_scale;
+        var potential = new LogarithmicPotential(x0, y0,
+                                                 qz=$("#qz").val(),
+                                                 vc=$("#vc").val());
+        
         // Define the global simulation object
-        var simulation = new StreamSimulation(canvas, pixel_scale);
+        var simulation = new StreamSimulation(canvas, potential, pixel_scale);
         simulation.draw(context);
 
         // Variables for keeping track of mouse click / drag positions
@@ -140,14 +158,15 @@
             galaxy = new GaussianGalaxy([mouse_x0/pixel_scale, mouse_y0/pixel_scale], 
                                         new_galaxy_velocity, 
                                         $("#r_scale").val(), 
-                                        $("#v_disp").val(),
-                                        $("#num_stars").val());
+                                        $("#v_disp").val()*kms_to_kpcmyr,
+                                        $("#num_stars").val(),
+                                        $("#galaxy_color").val());
             simulation.galaxies.push(galaxy);
             
             wipe_context(context);
             simulation.draw(context);
                 
-            //TODO: start();
+            start();
         });
 
         $('canvas').mousemove(function(e){
@@ -162,7 +181,7 @@
                     dy = mouse_y0-mouse_y1;
                 
                 // Scale from pixel units to km/s or whatever..
-                new_galaxy_velocity = [-dx/70, -dy/70];
+                new_galaxy_velocity = [-dx*2.*kms_to_kpcmyr, -dy*2.*kms_to_kpcmyr];
 
                 context.lineWidth = 2;
                 context.beginPath();

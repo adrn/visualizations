@@ -51,6 +51,6 @@ function draw_update(dt) {
     if (draw_trails != true) {
         wipe_context(context);
     }
-    simulation.draw();
+    simulation.draw(context);
     simulation.update(dt);
 }
