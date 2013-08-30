@@ -1,21 +1,21 @@
 <!--
-    - I need to consider the global potential when I update the positions and velocities, so I need 
+    - I need to consider the global potential when I update the positions and velocities, so I need
     to have some kind of way to keep track of the potential due to all galaxies when computing the
     accelerations...
-    
+
     - Click and drag to create a new galaxy - dragging right increases new galaxy radius, dragging up increases number of stars!
 -->
 
 <html>
     <head>
         <title>adrn | galaxy</title>
- 
+
         <!-- Style / css -->
         <link href='http://fonts.googleapis.com/css?family=Carrois+Gothic' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" type="text/css" media="screen" href="../css/colorbrewer.css" />
         <link rel="stylesheet" type="text/css" href="../css/style.css" />
         <link rel="stylesheet" type="text/css" href="galaxy.css" />
-        
+
         <!-- Javascript dependencies -->
         <script type="text/javascript" src="../js/jquery-1.6.1.min.js"></script>
         <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
@@ -23,27 +23,28 @@
         <script src="http://d3js.org/d3.v2.js"></script>
         <script type="text/javascript" src="../js/colorbrewer.js"></script>
         <script type="text/javascript" src="galaxy.js"></script>
-	
-        <script type="text/javascript">    
+        <script type="text/javascript" src="utils.js"></script>
+
+        <script type="text/javascript">
             var _gaq = _gaq || [];
             _gaq.push(['_setAccount', 'UA-11936482-10']);
             _gaq.push(['_trackPageview']);
-            
+
             (function() {
                 var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
                 ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
                 var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
             })();
         </script>
-	
+
     </head>
-    
+
     <body bgcolor="black">
         <div id="header">
             <h1>Logarithmic Potential</h1><br/>
             <p class="control_panel"><img src="potential.png" width="100%" /><br/><br/></p>
             <!--<hr size=1 width="70%"/>-->
-            
+
             <table cellpadding=5 cellspacing=10 width="100%" class="control_panel">
                 <tr>
                     <td colspan=2 class="label" style="text-align: center;">
@@ -52,7 +53,7 @@
                         Trails: <input type="checkbox" id="trails" onchange="toggle_trails();" />
                     </td>
                 </tr>
-                
+
                 <!-- Dark Matter Halo -->
                 <tr>
                     <td class="component_name" colspan=2>Halo</td>
@@ -71,11 +72,11 @@
                         v<sub>y</sub>: <input type="text" id="vy" value="0.0" size=8 />
                     </td>
                 </tr>-->
-                
+
                 <tr>
                     <td colspan=2></td>
                 </tr>
-                
+
                 <!-- Disk -->
                 <tr>
                     <td class="component_name" colspan=2>Disk<!--&nbsp;&nbsp;<input type="checkbox" id="add_disk" checked=checked onChange="refresh();" />--></td>
@@ -92,8 +93,8 @@
                     <td class="label">Dispersion (%):</td>
                     <td><input type="text" id="disk_dispersion" value="10" size=5 />&nbsp;%</td>
                 </tr>
-                
-                
+
+
                 <tr>
                     <td class="component_name" colspan=2 style="color: rgba(241, 163, 64,0.75);">Merger Disk<!--&nbsp;&nbsp;<input type="checkbox" id="add_disk" checked=checked onChange="refresh();" />--></td>
                 </tr>
@@ -105,11 +106,11 @@
                     <td class="label">Mass ratio (relative):</td>
                     <td><input type="text" id="small_mass" value="0.75" size=10 /></td>
                 </tr>
-                
+
                 <tr>
                     <td colspan=2></td>
                 </tr>
-                
+
                 <!-- Bulge -->
                 <!--
                 <tr>
@@ -134,14 +135,14 @@
             <input type="button" id="hide_show_button" value="Hide Menu" onClick="toggle_menu();" /><!-- control_panel -->
 
         </div>
-        
+
         <canvas id="bgcanvas"></canvas>
-        
+
         <div id="footer">
-            adrn at astro.columbia.edu
+            Adrian Price-Whelan // adrn at astro.columbia.edu // <a href="https://twitter.com/astrodrian">@astrodrian</a>
         </div>
     </body>
-    
+
     <script type="text/javascript">
         function toggle_menu() {
             if ($(".control_panel").css("display") != "none") {
@@ -152,21 +153,21 @@
                 $("#hide_show_button").val("Hide Menu");
             }
         }
-        
+
         var canvas = document.getElementById('bgcanvas');
         var context = canvas.getContext('2d');
-        
+
         // Fill the browser with the canvas
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        
+
         // Default disk radius is canvas.height/3.
         $("#disk_radius").val(parseInt(canvas.height/5.));
-        
+
         var interval,
             dt = $('#dt').val(),
             draw_trails = false;
-        
+
         function toggle_trails() {
             if ($('#trails').is(':checked')) {
                 draw_trails = true;
@@ -174,42 +175,42 @@
                 draw_trails = false;
             }
         }
-        
+
         var simulation = new GalaxySimulation(canvas);
         var main_galaxy;
         var small_galaxy; // right now limit to one!
         var small_mass;
-        
+
         function restart() {
             context.clearRect(0, 0, context.canvas.width, context.canvas.height);
             simulation.galaxies = {}
             setup_simulation(simulation);
             start();
         }
-        
+
         function setup_simulation(simulation) {
             var galaxy_position = [canvas.width/2., canvas.height/2.],
                 galaxy_velocity = [0.,0.];
                 //galaxy_velocity = [$("#vx").val(), $("#vy").val()];
-                
+
             main_galaxy = new LogarithmicGalaxy(galaxy_position, galaxy_velocity, 1.0);
-            main_galaxy.add_disk(parseInt($("#num_disk_stars").val()), 
-                        parseFloat($("#disk_radius").val()), 
+            main_galaxy.add_disk(parseInt($("#num_disk_stars").val()),
+                        parseFloat($("#disk_radius").val()),
                         parseFloat($("#disk_dispersion").val()));
             main_galaxy.U = $("#U_display").val()
-                        
+
             simulation.galaxies["main"] = main_galaxy;
         }
-        
+
         function start() {
             stop();
             interval = setInterval(draw_update, 10);
         }
-        
+
         function stop() {
             window.clearInterval(interval);
         }
-        
+
         function draw_update() {
             if (draw_trails != true) {
                 context.clearRect(0, 0, context.canvas.width, context.canvas.height);
@@ -217,62 +218,62 @@
             simulation.draw();
             simulation.update(1.);
         }
-        
+
         setup_simulation(simulation);
         start();
-        
+
         var mouse_is_down = false,
             mouse_x0 = 0.,
             mouse_y0 = 0.,
             mouse_x1 = 0.,
             mouse_y1 = 0.;
-            
+
         var small_galaxy_velocity = [0.,0.];
-        
+
         $('canvas').mousedown(function(e){
             mouse_is_down = true;
-            
+
             mouse_x0 = e.pageX;
             mouse_y0 = e.pageY;
-            
+
             stop();
         });
-        
+
         $('canvas').mouseup(function(e){
             small_mass = parseFloat($("#small_mass").val()) || 0.75;
             mouse_is_down = false;
-            
+
             small_galaxy = new LogarithmicGalaxy([e.pageX, e.pageY], small_galaxy_velocity, small_mass);
             small_galaxy.add_disk(parseFloat($("#num_disk_stars_small").val()), parseFloat($("#disk_radius").val())*Math.pow(small_mass,0.75), 0.);
-            small_galaxy.populations["disk"].color = "rgba(241, 163, 64,0.75)";        
+            small_galaxy.populations["disk"].color = "rgba(241, 163, 64,0.75)";
             simulation.galaxies["small"] = small_galaxy;
-            
+
             start();
         });
-        
+
         $('canvas').mousemove(function(e){
             if (mouse_is_down) {
                 context.clearRect(0, 0, context.canvas.width, context.canvas.height);
                 simulation.draw();
-                
+
                 mouse_x1 = e.pageX;
                 mouse_y1 = e.pageY;
                 var xx = mouse_x0-mouse_x1,
                     yy = mouse_y0-mouse_y1;
-                
+
                 small_galaxy_velocity = [-xx/40., -yy/40.];
-                
+
                 context.lineWidth = 1;
                 context.beginPath();
                 context.moveTo(mouse_x0, mouse_y0);
                 context.lineTo(mouse_x1, mouse_y1);
                 context.strokeStyle = "#ff0000";
                 context.stroke();
-                
+
                 //var r = Math.sqrt(xx*xx + yy*yy);
                 // TODO: instead of velocity, maybe convert r to number of stars / mass of galaxy?
             }
         });
-    
+
     </script>
 </html>
