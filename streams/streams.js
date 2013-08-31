@@ -1,5 +1,19 @@
 var kms_to_kpcmyr = 0.0010227121650537077;
 
+function leapfrog_step(potential, x, y, vx, vy, dt) {
+    var ai = potential.acceleration_at(x, y);
+    
+    var new_x = x + vx*dt + 0.5*ai[0]*dt*dt,
+        new_y = y + vy*dt + 0.5*ai[1]*dt*dt;
+        
+    var new_ai = potential.acceleration_at(new_x, new_y);
+    
+    var new_vx = vx + 0.5*(ai[0] + new_ai[0])*dt,
+        new_vy = vy + 0.5*(ai[1] + new_ai[1])*dt;
+        
+    return [new_x, new_y, new_vx, new_vy];
+}
+
 function LogarithmicPotential(x0, y0, qz, vc) {
     this.qz = qz;
     this.vc = vc;
@@ -95,10 +109,10 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
     
     this.position = position;
     this.velocity = velocity;
-    
     this.stars = new Array();
+    this.sfr = 0;
     
-    for (var ii=0; ii < N; ii++) {
+    this.add_star = function() {
         var star_x = gaussian(this.position[0], r_scale),
             star_y = gaussian(this.position[1], r_scale);
         
@@ -124,6 +138,17 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
     }
     
     this.update = function(potential, dt) {
+        
+        if (this.sfr > 1) {            
+            for (var ii=0; ii<this.sfr; ii++) {
+                this.add_star();
+            }
+        } else {
+            if (Math.random() > this.sfr) {
+                this.add_star();
+            }
+        }
+        
         for (var kk=0; kk < this.stars.length; kk++) {
             var star = this.stars[kk];
             
@@ -132,17 +157,18 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
                 vx = star[2],
                 vy = star[3];
             
-            var ai = potential.acceleration_at(x, y);
-            
-            var new_x = x + vx*dt + 0.5*ai[0]*dt*dt,
-                new_y = y + vy*dt + 0.5*ai[1]*dt*dt;
-                
-            var new_ai = potential.acceleration_at(new_x, new_y);
-            
-            var new_vx = vx + 0.5*(ai[0] + new_ai[0])*dt,
-                new_vy = vy + 0.5*(ai[1] + new_ai[1])*dt;
-            
-            this.stars[kk] = [new_x, new_y, new_vx, new_vy];
+            this.stars[kk] = leapfrog_step(potential, x, y, vx, vy, dt);
         }
+        
+        var new_pos_vel = leapfrog_step(potential, this.position[0], this.position[1], 
+                                        this.velocity[0], this.velocity[1], dt);
+        
+        this.position = [new_pos_vel[0], new_pos_vel[1]];
+        this.velocity = [new_pos_vel[2], new_pos_vel[3]];
+        
+    }
+    
+    for (var ii=0; ii < N; ii++) {
+        this.add_star();
     }
 }

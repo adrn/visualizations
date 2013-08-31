@@ -86,6 +86,10 @@
                     <td class="label"><input type="text" id="r_scale" value="1" size=5 />&nbsp;&nbsp;kpc</td>
                 </tr>
                 <tr>
+                    <td class="label right">SFR:</td>
+                    <td class="label"><input type="text" id="sfr" value="0" size=5 />&nbsp;&nbsp;stars/Myr</td>
+                </tr>
+                <tr>
                     <td class="label right">color:</td>
                     <td>
                         <select id="galaxy_color">
@@ -179,6 +183,7 @@
                                         $("#v_disp").val()*kms_to_kpcmyr,
                                         $("#num_stars").val(),
                                         $("#galaxy_color").val());
+            galaxy.sfr = parseInt($("#sfr").val());
             simulation.galaxies.push(galaxy);
             
             wipe_context(context);
