@@ -138,13 +138,12 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
     }
     
     this.update = function(potential, dt) {
-        
-        if (this.sfr > 1) {            
+        if (this.sfr >= 1) {            
             for (var ii=0; ii<this.sfr; ii++) {
                 this.add_star();
             }
         } else if (this.sfr > 0) {
-            if (Math.random() > this.sfr) {
+            if (Math.random() <= this.sfr) {
                 this.add_star();
             }
         }

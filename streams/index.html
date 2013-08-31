@@ -121,6 +121,10 @@
         <!-- Main canvas for drawing -->
         <canvas id="bgcanvas"></canvas>
         
+        <div id="welcome">
+            Click and drag to add a galaxy!   
+        </div>
+        
         <!-- Note at bottom for credits -->
         <div id="footer">
             Adrian Price-Whelan // adrn at astro.columbia.edu // <a href="https://twitter.com/astrodrian">@astrodrian</a>
@@ -186,7 +190,7 @@
                                         $("#v_disp").val()*kms_to_kpcmyr,
                                         $("#num_stars").val(),
                                         $("#galaxy_color").val());
-            galaxy.sfr = parseInt($("#sfr").val());
+            galaxy.sfr = parseFloat($("#sfr").val());
             simulation.galaxies.push(galaxy);
             
             wipe_context(context);

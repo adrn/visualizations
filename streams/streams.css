@@ -118,3 +118,18 @@ h1 {
 .right {
     text-align: right;
 }
+
+#welcome {
+    position: absolute;
+    width: 100%;
+    top: 8%;
+    text-align: center;
+    font-size: 32pt;
+    font-weight: 200;
+    color: #674893;
+    text-shadow: -1px -1px #222, 1px 1px #444;
+    -webkit-user-select: none; /* Chrome/Safari */        
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+    zorder: -1;
+}

@@ -35,6 +35,7 @@ function restart() {
 
 function start() {
     /* Start the simulation. */
+    $("#welcome").hide();
     stop();
     interval = setInterval(draw_update, Math.pow(10, $('#speed').val()));
 }
