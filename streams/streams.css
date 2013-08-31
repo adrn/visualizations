@@ -28,8 +28,6 @@ body {
 }
 
 #header table td.label {
-    text-align: left;
-    padding-left: 25px;
     font-size: 14pt;
     color: #ccc;
     width: 50%;
@@ -68,11 +66,11 @@ h1 {
     border: 0px;
     font-size: 10pt;
     cursor: pointer;
-    opacity: 0.75;
+    color: #1d1d1d;
 }
 
 #hide_show_button:hover {
-    color: #0571B0;
+    color: #000000;
 }
 
 .control_button {
@@ -103,4 +101,12 @@ h1 {
     background-image:     -ms-linear-gradient(top, rgba(166,189,219,1) 0%,rgba(128,128,128,1) 100%);
     background-image:      -o-linear-gradient(top, rgba(166,189,219,1) 0%,rgba(128,128,128,1) 100%);
     background-image:         linear-gradient(top, rgba(166,189,219,1) 0%,rgba(128,128,128,1) 100%);
+}
+
+.left {
+    text-align: left;
+}
+
+.right {
+    text-align: right;
 }
