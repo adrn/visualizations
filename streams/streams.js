@@ -143,7 +143,7 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
             for (var ii=0; ii<this.sfr; ii++) {
                 this.add_star();
             }
-        } else {
+        } else if (this.sfr > 0) {
             if (Math.random() > this.sfr) {
                 this.add_star();
             }
@@ -171,4 +171,25 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
     for (var ii=0; ii < N; ii++) {
         this.add_star();
     }
+}
+
+// Setup demo simulation
+function random_galaxy(simulation, context, color) {
+                  
+    var phi = Math.random() * 2. * Math.PI;
+    var vx = $("#vc").val()*Math.cos(phi)*kms_to_kpcmyr,
+        vy = $("#vc").val()*Math.sin(phi)*kms_to_kpcmyr;
+    galaxy = new GaussianGalaxy([gaussian(simulation.origin[0],200)/pixel_scale, gaussian(simulation.origin[1],200)/pixel_scale], 
+                                [vx, vy], 
+                                Math.random()*3.5 + 0.5, 
+                                (Math.random()*4.9 + 0.1)*kms_to_kpcmyr,
+                                100,
+                                color);
+    simulation.galaxies.push(galaxy);
+    
+    wipe_context(context);
+    simulation.draw(context);
+    $(".control_panel").css("display", "none");
+    $("#hide_show_button").val($("<div>").html("show").text());
+    start();
 }

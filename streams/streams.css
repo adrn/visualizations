@@ -58,10 +58,8 @@ h1 {
     font-weight: 400;
 }
 
-#hide_show_button {
+.text_button {
     position: absolute;
-    right: 20px;
-    bottom: 10px;
     background: none;
     border: 0px;
     font-size: 10pt;
@@ -69,8 +67,18 @@ h1 {
     color: #1d1d1d;
 }
 
-#hide_show_button:hover {
+.text_button:hover {
     color: #000000;
+}
+
+#hide_show_button {
+    right: 20px;
+    bottom: 10px;
+}
+
+#demo_button {
+    right: 20px;
+    top: 25px;
 }
 
 .control_button {

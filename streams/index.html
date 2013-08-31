@@ -25,7 +25,9 @@
     <body>
         <div id="header">
             <h1>Stream maker</h1>
-
+            
+            <input type="button" id="demo_button" class="text_button" value="(add random galaxy)" onClick="random_galaxy(simulation, context, color_cycle());" />
+            
             <table cellpadding=5 cellspacing=10 width="100%" class="control_panel">
                 <tr>
                     <td class="label right">
@@ -112,7 +114,7 @@
                 <input type="button" class="control_button" value="ll" onClick="stop();" />
                 <input type="button" class="control_button" value="clear" onClick="restart();" style="font-weight: 300;" />
             </center>
-            <input type="button" id="hide_show_button" value="hide" onClick="toggle_menu();" /><!-- control_panel -->
+            <input type="button" id="hide_show_button" class="text_button" value="hide" onClick="toggle_menu();" /><!-- control_panel -->
 
         </div>
         
@@ -135,6 +137,7 @@
         canvas.height = window.innerHeight;
 
         var interval,
+            color_idx = 0,
             dt = 1.,
             draw_trails = false,
             new_galaxy_velocity = [0.,0.],

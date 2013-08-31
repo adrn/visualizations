@@ -54,3 +54,10 @@ function draw_update(dt) {
     simulation.draw(context);
     simulation.update(dt);
 }
+
+function color_cycle() {
+    var colors = ["#2166AC", "#1A9850", "#B2182B", "#998EC3", "#FFFFBF"];
+    color = colors[color_idx % colors.length];
+    color_idx = color_idx + 1;
+    return color;
+}
