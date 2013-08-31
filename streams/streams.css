@@ -33,6 +33,7 @@ body {
     font-size: 14pt;
     color: #ccc;
     width: 50%;
+    font-weight: 200;
 }
 
 #header table td.component_name {
@@ -60,13 +61,46 @@ h1 {
 }
 
 #hide_show_button {
+    position: absolute;
+    right: 20px;
+    bottom: 10px;
+    background: none;
     border: 0px;
-    background: #666666;
-    color: white;
+    font-size: 10pt;
     cursor: pointer;
-    font-family: "Courier";
-    padding-top: 2px;
-    padding-bottom: 2px;
-    padding-left: 10px;
-    padding-right: 10px;
+    opacity: 0.75;
+}
+
+#hide_show_button:hover {
+    color: #0571B0;
+}
+
+.control_button {
+    background-image: -webkit-linear-gradient(top, rgba(219,219,219,1) 0%,rgba(128,128,128,1) 100%);
+    background-image:    -moz-linear-gradient(top, rgba(219,219,219,1) 0%,rgba(128,128,128,1) 100%);
+    background-image:     -ms-linear-gradient(top, rgba(219,219,219,1) 0%,rgba(128,128,128,1) 100%);
+    background-image:      -o-linear-gradient(top, rgba(219,219,219,1) 0%,rgba(128,128,128,1) 100%);
+    background-image:         linear-gradient(top, rgba(219,219,219,1) 0%,rgba(128,128,128,1) 100%);
+    display: inline-block;
+    
+    color: #111111;
+    font-size: 14px;
+    font-weight: 900;
+    border: 0px;
+    padding: 4px;
+    margin-left: 3px;
+    margin-right: 3px;
+    margin-top: 5px;
+}
+
+.control_button:hover {
+    cursor: pointer;
+}
+
+.control_button:active {
+    background-image: -webkit-linear-gradient(top, rgba(166,189,219,1) 0%,rgba(128,128,128,1) 100%);
+    background-image:    -moz-linear-gradient(top, rgba(166,189,219,1) 0%,rgba(128,128,128,1) 100%);
+    background-image:     -ms-linear-gradient(top, rgba(166,189,219,1) 0%,rgba(128,128,128,1) 100%);
+    background-image:      -o-linear-gradient(top, rgba(166,189,219,1) 0%,rgba(128,128,128,1) 100%);
+    background-image:         linear-gradient(top, rgba(166,189,219,1) 0%,rgba(128,128,128,1) 100%);
 }

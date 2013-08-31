@@ -3,7 +3,7 @@
         <title>adrn | streams</title>
 
         <!-- Style / css -->
-        <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,300,400,700' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:100,200,300,400,700,900' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" type="text/css" media="screen" href="../css/colorbrewer.css" />
         <link rel="stylesheet" type="text/css" href="../css/style.css" />
         <link rel="stylesheet" type="text/css" href="streams.css" />
@@ -86,11 +86,12 @@
                 </tr>
                 
             </table>
-            <input type="button" value="Start" onClick="start();" />
-            <input type="button" value="Pause" onClick="stop();" />
-            <input type="button" value="Restart" onClick="restart();" />
-            <input type="button" id="hide_show_button" value="&#x25B2;" onClick="toggle_menu();" /><!-- control_panel -->
-            <br/><br/>
+            <center>
+                <input type="button" class="control_button" value="&#9658;" onClick="start();" />
+                <input type="button" class="control_button" value="ll" onClick="stop();" />
+                <input type="button" class="control_button" value="clear" onClick="restart();" style="font-weight: 300;" />
+            </center>
+            <input type="button" id="hide_show_button" value="hide" onClick="toggle_menu();" /><!-- control_panel -->
 
         </div>
         

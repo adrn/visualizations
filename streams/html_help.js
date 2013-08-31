@@ -3,10 +3,10 @@ function toggle_menu() {
     
     if ($(".control_panel").css("display") != "none") {
         $(".control_panel").css("display", "none");
-        $("#hide_show_button").val($("<div>").html("&#x25BC;").text());
+        $("#hide_show_button").val($("<div>").html("show").text());
     } else {
         $(".control_panel").css("display", "block");
-        $("#hide_show_button").val($("<div>").html("&#x25B2;").text());
+        $("#hide_show_button").val($("<div>").html("hide").text());
     }
 }
 
