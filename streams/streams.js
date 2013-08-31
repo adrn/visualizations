@@ -49,8 +49,22 @@ function StreamSimulation(canvas, potential, pixel_scale) {
         context.lineTo(this.origin[0], this.origin[1]+5.*this.pixel_scale);
         context.moveTo(this.origin[0]-5.*this.pixel_scale, this.origin[1]);
         context.lineTo(this.origin[0]+5.*this.pixel_scale, this.origin[1]);
-        context.strokeStyle = "rgba(67, 162, 202, 0.75)";
+        context.strokeStyle = "#151515";
         context.stroke();
+        
+        /*
+        context.beginPath();
+        context.arc(this.origin[0], this.origin[1]-69.25, 75, 3*Math.PI/8, 5*Math.PI/8., false);
+        context.closePath();
+        context.fillStyle = 'rgba(67, 162, 202, 0.5)';
+        context.fill();
+        
+        context.beginPath();
+        context.arc(this.origin[0], this.origin[1]+69.25, 75, 11*Math.PI/8, 13*Math.PI/8., false);
+        context.closePath();
+        context.fillStyle = 'rgba(67, 162, 202, 0.5)';
+        context.fill();
+        */
         
         for (var ii=0; ii < this.galaxies.length; ii++) { 
             this.galaxies[ii].draw(context, this.pixel_scale);

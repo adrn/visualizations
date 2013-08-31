@@ -58,7 +58,7 @@
                 </tr>
                 <tr>
                     <td class="label"># of stars:</td>
-                    <td><input type="text" id="num_stars" value="1000" size=10 /></td>
+                    <td><input type="text" id="num_stars" value="100" size=10 /></td>
                 </tr>
                 <tr>
                     <td class="label">Velocity disp:</td>
@@ -165,7 +165,11 @@
             
             wipe_context(context);
             simulation.draw(context);
-                
+            
+            $('#galaxy_color option:selected').removeAttr('selected')
+                                              .next('option')
+                                              .attr('selected', 'selected');
+            
             start();
         });
 
