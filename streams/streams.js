@@ -175,11 +175,11 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
 
 // Setup demo simulation
 function random_galaxy(simulation, context, color) {
-                  
     var phi = Math.random() * 2. * Math.PI;
     var vx = $("#vc").val()*Math.cos(phi)*kms_to_kpcmyr*0.75,
         vy = $("#vc").val()*Math.sin(phi)*kms_to_kpcmyr*0.75;
-    galaxy = new GaussianGalaxy([gaussian(simulation.origin[0],200)/pixel_scale, gaussian(simulation.origin[1],200)/pixel_scale], 
+    galaxy = new GaussianGalaxy([gaussian(simulation.origin[0],0.15*canvas.width)/pixel_scale, 
+                                 gaussian(simulation.origin[1],0.15*canvas.height)/pixel_scale], 
                                 [vx, vy], 
                                 Math.random()*3.5 + 0.5, 
                                 (Math.random()*4.9 + 0.1)*kms_to_kpcmyr,
