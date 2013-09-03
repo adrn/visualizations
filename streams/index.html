@@ -45,7 +45,7 @@
                         <div class='help'>Show star trails instead of points</div>
                     </td>
                     <td>
-                        <input type="checkbox" id="trails" onchange="toggle_trails();" />
+                        <input type="checkbox" id="trails" onchange="toggle_trails();" checked="checked" />
                     </td>
                 </tr>
                 <tr>
@@ -154,7 +154,7 @@
         </div>
     </body>
 
-    <script type="text/javascript">
+    <script type="text/javascript">        
         // Show help menu on hover
         $(".label").mouseover(function () {
             var help_div = $(this).find(".help");
@@ -193,9 +193,10 @@
         var interval,
             color_idx = 0,
             dt = 1.,
-            draw_trails = false,
+            draw_trails = true,
             new_galaxy_velocity = [0.,0.],
-            pixel_scale=4.;
+            pixel_scale=4.,
+            global_alpha=0.15;
 
         // Define the potential
         var x0 = canvas.width / 2. / pixel_scale,

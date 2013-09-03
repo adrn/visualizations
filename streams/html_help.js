@@ -16,8 +16,10 @@ function toggle_trails() {
     */
     if ($('#trails').is(':checked')) {
         draw_trails = true;
+        global_alpha = 0.15;
     } else {
         draw_trails = false;
+        global_alpha = 0.75;
     }
 }
 

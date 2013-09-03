@@ -125,6 +125,7 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
     this.draw = function(context, pixel_scale) {
         /* Draw all stars to the given context */
         
+        context.globalAlpha = global_alpha;
         for (var ii=0; ii < this.stars.length; ii++) {
             var x = this.stars[ii][0]*pixel_scale,
                 y = this.stars[ii][1]*pixel_scale;
@@ -135,6 +136,7 @@ function GaussianGalaxy(position, velocity, r_scale, v_scale, N, color, alpha) {
             context.closePath();
             context.fill();
         }
+        context.restore()
     }
     
     this.update = function(potential, dt) {
