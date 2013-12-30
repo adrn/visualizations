@@ -1,11 +1,17 @@
 
+<!--
+    TODO:
+    - Add button to go to Sun's position, field of streams view
+    - Add other streams, toggle on off
+-->
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
-        <title>three.js demo - particles</title>
+        <title>Milky Way Streams</title>
 
         <!-- CSS / Styling -->
         <!--<link rel="stylesheet" type="text/css" href="/static/css/style.css">-->
@@ -15,10 +21,30 @@
                 background-color: #111111;
                 margin: 0px;
                 overflow: hidden;
+                font-family: "Roboto";
+                font-weight: 200;
+            }
+
+            #info {
+                color:#ccc;
+                position: absolute;
+                top: 0px;
+                width: 100%;
+                padding: 5px;
+                margin: 0 auto;
+                text-align: center;
             }
 
             a {
                 color:#0078ff;
+            }
+
+            #footer {
+                position: absolute;
+                bottom: 10px;
+                right: 10px;
+                font-size: 10pt;
+                color: #bbb;
             }
         </style>
 
@@ -201,6 +227,14 @@
     </head>
     <body>
         <div id="container"></div>
+        <div id="info">
+            <b>Milky Way streams demo</b></br>
+            Left click and drag: rotate, Scroll wheel: zoom
+        </div>
+
+        <div id="footer">
+            Adrian Price-Whelan // adrn at astro.columbia.edu // <a href="https://twitter.com/astrodrian">@astrodrian</a>
+        </div>
 
         <script type='text/javascript'>
 
