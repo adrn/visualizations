@@ -14,39 +14,8 @@
         <title>Milky Way Streams</title>
 
         <!-- CSS / Styling -->
-        <!--<link rel="stylesheet" type="text/css" href="/static/css/style.css">-->
+        <link rel="stylesheet" type="text/css" href="style.css">
         <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,500,700,900,500italic,300,300italic,400italic' rel='stylesheet' type='text/css'>
-        <style>
-            body {
-                background-color: #111111;
-                margin: 0px;
-                overflow: hidden;
-                font-family: "Roboto";
-                font-weight: 200;
-            }
-
-            #info {
-                color:#ccc;
-                position: absolute;
-                top: 0px;
-                width: 100%;
-                padding: 5px;
-                margin: 0 auto;
-                text-align: center;
-            }
-
-            a {
-                color:#0078ff;
-            }
-
-            #footer {
-                position: absolute;
-                bottom: 10px;
-                right: 10px;
-                font-size: 10pt;
-                color: #bbb;
-            }
-        </style>
 
         <!-- Javscript dependencies -->
         <script src="../js/three/three.min.js"></script>
@@ -56,6 +25,7 @@
         <!--<script src="../js/jquery.min.js"></script>-->
 
         <script type='text/javascript'>
+            // First check for WebGL support
             var stats, camera, scene, renderer,
                 all_particles, geometry, materials, parameters;
 
@@ -76,12 +46,12 @@
                 var size = 128;
 
                 // create canvas
-                var canvas = document.createElement( 'canvas' );
+                var canvas = document.createElement('canvas');
                 canvas.width = size;
                 canvas.height = size;
 
                 // get context
-                var context = canvas.getContext( '2d' );
+                var context = canvas.getContext('2d');
 
                 // draw circle
                 var centerX = size / 2;
@@ -227,7 +197,7 @@
     </head>
     <body>
         <div id="container"></div>
-        <div id="info">
+        <div id="info" class="top-center">
             <b>Milky Way streams demo</b></br>
             Left click and drag: rotate, Scroll wheel: zoom
         </div>
@@ -238,9 +208,34 @@
 
         <script type='text/javascript'>
 
-            $.getJSON("data.json", function(data) {
-                init(data);
-                animate();
+            $(document).ready(function() {
+                var div = $("<div></div>").attr("id","webgl-notify")
+                                          .attr("class", "top-center");
+                if (!window.WebGLRenderingContext) {
+                    // Browser has no idea what WebGL is. Suggest they
+                    // get a new browser by presenting the user with link to
+                    // http://get.webgl.org
+                    div.html("Oh no! Your browser does not seem to support WebGL.");
+                    $("body").append(div);
+                    $("#info").hide();
+                    return;
+                }
+
+                var canvas = document.createElement('canvas');
+                gl = canvas.getContext("webgl");
+                if (!gl && !canvas.getContext("webkit-3d")) {
+
+                    div.html("It seems like your browser supports WebGL, however it does not appear to be enabled. Enable WebGL, then reload the page.<br/>" +
+                        "<a href='http://www.browserleaks.com/webgl#howto-enable-disable-webgl'>How to enable WebGL</a>");
+                    $("body").append(div);
+                    $("#info").hide();
+                    return;
+                }
+
+                $.getJSON("data.json", function(data) {
+                    init(data);
+                    animate();
+                });
             });
 
         </script>
