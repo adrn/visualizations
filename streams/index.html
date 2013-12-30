@@ -11,20 +11,20 @@
         <!-- Javascript dependencies -->
         <script type="text/javascript" src="html_help.js"></script>
         <script type="text/javascript" src="streams.js"></script>
-        
+
         <script type="text/javascript" src="../js/jquery-1.6.1.min.js"></script>
         <script type="text/javascript" src="../js/d3.v2.min.js"></script>
         <script type="text/javascript" src="utils.js"></script>
-        
+
         <script>
             (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
             (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
             m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
             })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-            
+
             ga('create', 'UA-11936482-14', 'adrian.pw');
             ga('send', 'pageview');
-            
+
         </script>
 
     </head>
@@ -35,9 +35,9 @@
                 Stream maker
             </h1>
             <div class='help title_help'>A very simple simulation to demonstrate how tidal streams are formed. By clicking (or clicking and dragging) on the browser window, you will add a small dwarf galaxy with parameters determined from the below menu. The positions and velocities are sampled from Gaussian distributions, with dispersions specified below.</div>
-            
+
             <input type="button" id="demo_button" class="text_button" value="(add random galaxy)" onClick="random_galaxy(simulation, context, color_cycle());" />
-            
+
             <table cellpadding=5 cellspacing=10 width="100%" class="control_panel">
                 <tr>
                     <td class="label right">
@@ -130,7 +130,7 @@
                 <tr>
                     <td colspan=2></td>
                 </tr>
-                
+
             </table>
             <center>
                 <input type="button" class="control_button" value="&#9658;" onClick="start();" />
@@ -140,21 +140,20 @@
             <input type="button" id="hide_show_button" class="text_button" value="hide" onClick="toggle_menu();" /><!-- control_panel -->
 
         </div>
-        
+
         <!-- Main canvas for drawing -->
         <canvas id="bgcanvas"></canvas>
-        
+
         <div id="welcome">
-            Click and drag to add a galaxy!   
+            Click and drag to add a galaxy!
         </div>
-        
+
         <!-- Note at bottom for credits -->
         <div id="footer">
-            Adrian Price-Whelan // adrn at astro.columbia.edu // <a href="https://twitter.com/astrodrian">@astrodrian</a>
-        </div>
+            Adrian Price-Whelan // adrn at astro.columbia.edu // <a href="https://twitter.com/a_p_w">@a_p_w</a></div>
     </body>
 
-    <script type="text/javascript">        
+    <script type="text/javascript">
         // Show help menu on hover
         $(".label").mouseover(function () {
             var help_div = $(this).find(".help");
@@ -164,11 +163,11 @@
                 top: ($(this).offset().top + 10) + "px",
             });
         });
-        
+
         $(".label").mouseout(function () {
             $(this).find(".help").hide();
         });
-        
+
         $("#title").mouseover(function () {
             var help_div = $(".title_help");
             help_div.css({
@@ -177,11 +176,11 @@
                 top: ($(this).offset().top + 25) + "px",
             });
         });
-        
+
         $("#title").mouseout(function () {
             $(".title_help").hide();
         });
-        
+
         // Get javascript references to the canvas and context
         var canvas = document.getElementById('bgcanvas');
         var context = canvas.getContext('2d');
@@ -204,7 +203,7 @@
         var potential = new LogarithmicPotential(x0, y0,
                                                  qz=$("#qz").val(),
                                                  vc=$("#vc").val());
-        
+
         // Define the global simulation object
         var simulation = new StreamSimulation(canvas, potential, pixel_scale);
         simulation.draw(context);
@@ -215,7 +214,7 @@
             mouse_y0 = 0.,
             mouse_x1 = 0.,
             mouse_y1 = 0.;
-        
+
         $('canvas').mousedown(function(e){
             /* Store that the mouse is down, save position of click */
             mouse_is_down = true;
@@ -224,7 +223,7 @@
 
             // reset new galaxy velocity
             new_galaxy_velocity = [0.,0.]
-            
+
             // Stop simulation until mouse is up
             stop();
         });
@@ -235,22 +234,22 @@
             */
             mouse_is_down = false;
 
-            galaxy = new GaussianGalaxy([mouse_x0/pixel_scale, mouse_y0/pixel_scale], 
-                                        new_galaxy_velocity, 
-                                        $("#r_scale").val(), 
+            galaxy = new GaussianGalaxy([mouse_x0/pixel_scale, mouse_y0/pixel_scale],
+                                        new_galaxy_velocity,
+                                        $("#r_scale").val(),
                                         $("#v_disp").val()*kms_to_kpcmyr,
                                         $("#num_stars").val(),
                                         $("#galaxy_color").val());
             galaxy.sfr = parseFloat($("#sfr").val());
             simulation.galaxies.push(galaxy);
-            
+
             wipe_context(context);
             simulation.draw(context);
-            
+
             $('#galaxy_color option:selected').removeAttr('selected')
                                               .next('option')
                                               .attr('selected', 'selected');
-            
+
             start();
         });
 
@@ -258,13 +257,13 @@
             if (mouse_is_down) {
                 wipe_context(context);
                 simulation.draw(context);
-                
+
                 // store present position of mouse
                 mouse_x1 = e.pageX;
                 mouse_y1 = e.pageY;
                 var dx = mouse_x0-mouse_x1,
                     dy = mouse_y0-mouse_y1;
-                
+
                 // Scale from pixel units to km/s or whatever..
                 new_galaxy_velocity = [-dx*2.*kms_to_kpcmyr, -dy*2.*kms_to_kpcmyr];
 
@@ -276,6 +275,6 @@
                 context.stroke();
             }
         });
-        
+
     </script>
 </html>
