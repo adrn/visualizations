@@ -202,6 +202,7 @@
             <b>VL2 streams demo</b></br>
             Left click and drag: rotate, Scroll wheel: zoom
         </div>
+        <div id="loading">--- [ Loading data<span></span> ] ---</div>
 
         <div id="footer">
             Adrian Price-Whelan // adrn at astro.columbia.edu // <a href="https://twitter.com/a_p_w">@a_p_w</a>
@@ -233,7 +234,20 @@
                     return;
                 }
 
+                $("#loading").show();
+                var intervalID = setInterval(function () {
+                    var span = $("#loading span");
+                    var ellipsis = span.text();
+                    ellipsis = ellipsis + ".";
+                    if (ellipsis.length > 5) {
+                        ellipsis = ".";
+                    }
+                    span.html(ellipsis);
+                }, 200);
                 $.getJSON("5000_vl2.json", function(data) {
+                    $("#loading").hide();
+                    clearInterval(intervalID);
+
                     init(data);
                     animate();
                 });
