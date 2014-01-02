@@ -1,5 +1,5 @@
 body {
-    background: #333333;
+    background: #222222;
 }
 
 #header {
@@ -23,7 +23,7 @@ body {
     font-size: 10pt;
 }
 
-#U_display { 
+#U_display {
     font-size: 10pt;
 }
 
@@ -44,6 +44,8 @@ body {
 #header h1 {
     color: #3871B2;
     text-shadow: 1px 1px 3px #111;
+    font-size: 150%;
+    letter-spacing: 1px;
 }
 
 #footer {
@@ -52,10 +54,6 @@ body {
     right: 10px;
     font-size: 10pt;
     color: #bbb;
-}
-
-h1 {
-    font-weight: 400;
 }
 
 .text_button {
@@ -89,7 +87,7 @@ h1 {
     background-image:      -o-linear-gradient(top, rgba(219,219,219,1) 0%,rgba(128,128,128,1) 100%);
     background-image:         linear-gradient(top, rgba(219,219,219,1) 0%,rgba(128,128,128,1) 100%);
     display: inline-block;
-    
+
     color: #111111;
     font-size: 14px;
     font-weight: 900;
