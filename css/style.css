@@ -1,11 +1,13 @@
-* {margin:0 auto; padding:0;} 
+* {margin:0 auto; padding:0;}
 
 html, body {
     width: 100%;
-    font-family: 'Source Sans Pro', sans-serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 body {
+    background: #cccccc;
+    color: #333333;
 }
 
 /* --------------------------------
@@ -17,7 +19,7 @@ header {
     width: 60%;
     margin: auto;
     text-align: center;
-    
+
     padding-top: 10px;
     padding-bottom: 10px;
 }
@@ -53,6 +55,34 @@ a.menu_item:hover {
     color: #FA000D;
 }
 
+h1, h2, h3, h4, h5, h6, h7 {
+    color: #333333;
+}
+
+h1 {
+    letter-spacing: 8px;
+    font-size: 400%;
+    color: #111111;
+    font-weight: 900;
+}
+
+h2 {
+    letter-spacing: 2px;
+    font-size: 250%;
+    font-weight: 400;
+}
+
+h3 {
+    letter-spacing: 2px;
+    font-size: 150%;
+    font-weight: 300;
+}
+
+h4 {
+    font-size: 130%;
+    font-weight: 200;
+}
+
 /* --------------------------------
     LINKS
    -------------------------------- */
@@ -78,8 +108,13 @@ a:hover {
 /* --------------------------------
     FOOTER
    -------------------------------- */
-footer {
-    
+#footer {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 12pt;
+    color: #bbb;
+    font-weight: 200;
 }
 
 /*
@@ -95,7 +130,10 @@ footer {
    -------------------------------- */
 hr.divider {
     width: 40%;
-    size: 1px;
+    size: 0px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #888;
 }
 
 img.main {
