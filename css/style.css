@@ -3,9 +3,7 @@
 html, body {
     width: 100%;
     font-family: 'Roboto', sans-serif;
-}
-
-body {
+    font-weight: 300;
     background: #cccccc;
     color: #333333;
 }
@@ -38,7 +36,6 @@ ul.menu li {
 
 ul.menu li#name {
     font-size: 16pt;
-    font-weight: bold;
 	padding: 0px 25px;
 	list-style: none;
 	display: inline;
