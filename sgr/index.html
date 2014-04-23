@@ -72,7 +72,7 @@
 
                 // set up the camera
                 var aspect = window.innerWidth / window.innerHeight;
-                camera = new THREE.PerspectiveCamera(75, aspect, 10, -10);
+                camera = new THREE.PerspectiveCamera(75, aspect, 1, -10);
                 //camera.position.x = 100;
                 camera.position.y = 100;
                 camera.up = new THREE.Vector3(0, 0, 1);
@@ -110,6 +110,7 @@
                         position = d['data'];
 
                     for (var i=0; i < position.length; i++) {
+		    //for (var i=0; i < 1000; i++) {
                         var vertex = new THREE.Vector3();
                         vertex.x = position[i][0]
                         vertex.y = position[i][1]
@@ -203,7 +204,7 @@
         </div>
 
         <div id="footer">
-            Adrian Price-Whelan // adrn at astro.columbia.edu // <a href="https://twitter.com/a_p_w">@a_p_w</a>
+            Adrian Price-Whelan // adrn at astro.columbia.edu // <a href="https://twitter.com/adrianprw">@adrianprw</a>
         </div>
 
         <script type='text/javascript'>
