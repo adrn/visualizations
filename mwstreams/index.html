@@ -1,0 +1,267 @@
+
+<!--
+    TODO:
+    - Add other streams, toggle on off
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+        <title>Milky Way Streams</title>
+
+        <!-- CSS / Styling -->
+        <link rel="stylesheet" type="text/css" href="style.css">
+        <link href='http://fonts.googleapis.com/css?family=Roboto:400,100,500,700,900,500italic,300,300italic,400italic' rel='stylesheet' type='text/css'>
+
+        <!-- Javscript dependencies -->
+        <script src="../js/three/three.min.js"></script>
+        <script src="../js/three/stats.min.js"></script>
+        <script src="../js/three/lib/controls/TrackballControls.js"></script>
+        <script src="http://code.jquery.com/jquery.min.js"></script>
+        <!--<script src="../js/jquery.min.js"></script>-->
+
+        <script type='text/javascript'>
+            // First check for WebGL support
+            var stats, camera, scene, renderer,
+                all_particles, geometry, materials, parameters;
+
+                var windowHalfX, windowHalfY,
+                mouseX, mouseY;
+
+            // defaults
+            materials = {};
+            all_particles = {};
+            windowHalfX = window.innerWidth / 2;
+            windowHalfY = window.innerHeight / 2;
+            mouseX = 0;
+            mouseY = 0;
+
+            function generateTexture( ) {
+
+                // draw a circle in the center of the canvas
+                var size = 128;
+
+                // create canvas
+                var canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+
+                // get context
+                var context = canvas.getContext('2d');
+
+                // draw circle
+                var centerX = size / 2;
+                var centerY = size / 2;
+                var radius = size / 2;
+
+                context.beginPath();
+                context.arc( centerX, centerY, radius, 0, 2 * Math.PI, false );
+                context.fillStyle = "#FFFFFF";
+                context.fill();
+
+                return canvas;
+
+            }
+
+            function init(data) {
+                var container = document.getElementById('container');
+
+                // set up the camera
+                var aspect = window.innerWidth / window.innerHeight;
+                camera = new THREE.PerspectiveCamera(75, aspect, 1, -10);
+                // camera.position.x = -25;
+                camera.position.y = -50;
+                camera.up = new THREE.Vector3(0, 0, 1);
+
+                // set the camera to orbit control
+                controls = new THREE.TrackballControls(camera);
+                controls.rotateSpeed = 1.0;
+                controls.zoomSpeed = 1.2;
+                controls.panSpeed = 0.8;
+
+                controls.noZoom = false;
+                controls.noPan = false;
+
+                controls.staticMoving = true;
+                controls.dynamicDampingFactor = 0.3;
+
+                controls.keys = [ 65, 83, 68 ];
+                controls.addEventListener( 'change', render );
+
+                scene = new THREE.Scene();
+                var geometry = new THREE.Geometry();
+                //scene.fog = new THREE.FogExp2( 0x000000, 0.0007 );
+
+                // add the data to the view
+                var texture = new THREE.Texture( generateTexture( ) );
+                texture.needsUpdate = true; // important
+
+                var keys = [];
+                for(var k in data) keys.push(k);
+
+                for (var j=0; j < keys.length; j++) {
+                    geometry = new THREE.Geometry();
+
+                    var d = data[keys[j]],
+                        position = d['data'],
+                        size = d['size'] || 1e-1;
+
+                    for (var i=0; i < position.length; i++) {
+                        var vertex = new THREE.Vector3();
+                        vertex.x = position[i][0]
+                        vertex.y = position[i][1]
+                        vertex.z = position[i][2]
+                        geometry.vertices.push(vertex);
+                    }
+
+                    // TODO: add more material params to JSON
+                    var material = new THREE.ParticleBasicMaterial({ size: size,
+                                                                     map: texture,
+                                                                     blending: THREE.AdditiveBlending, // required
+                                                                     depthTest: false, // required
+                                                                   });
+                    material.transparent = true;
+                    material.opacity = d['opacity'] || 0.4;
+                    material.color.setHex(parseInt(d['color']) || 0xffffff);
+
+                    var particles = new THREE.ParticleSystem(geometry, material);
+                    scene.add(particles);
+
+                    all_particles[keys[j]] = particles;
+                    materials[keys[j]] = material;
+                }
+
+                // -- Add the sun --
+                geometry = new THREE.Geometry();
+                var vertex = new THREE.Vector3();
+                vertex.x = -8.;
+                vertex.y = 0.;
+                vertex.z = 0.;
+                geometry.vertices.push(vertex);
+
+                var material = new THREE.ParticleBasicMaterial({ size: 0.5,
+                                                                 map: texture,
+                                                                 blending: THREE.AdditiveBlending, // required
+                                                                 depthTest: false, // required
+                                                               });
+                material.transparent = true;
+                material.opacity = 1;
+                material.color.setHex(0xfeb24c);
+
+                var particles = new THREE.ParticleSystem(geometry, material);
+                scene.add(particles);
+
+                all_particles['sun'] = particles;
+                materials['sun'] = material;
+                // -- sun --
+
+                // define the renderer
+                renderer = new THREE.WebGLRenderer({alpha : true});
+                renderer.setSize( window.innerWidth, window.innerHeight );
+                container.appendChild(renderer.domElement);
+
+                // add a FPS stats window
+                stats = new Stats();
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.top = '0px';
+                container.appendChild( stats.domElement );
+
+                //
+                window.addEventListener('resize', onWindowResize, false);
+
+            }
+
+            function onWindowResize() {
+                // if the window is resized
+
+                windowHalfX = window.innerWidth / 2;
+                windowHalfY = window.innerHeight / 2;
+
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                controls.handleResize();
+                renderer.setSize( window.innerWidth, window.innerHeight );
+            }
+
+            function render() {
+                // do the actual rendering
+                var time = Date.now() * 0.0005;
+
+                //camera.position.x += ( mouseX - camera.position.x ) * 0.05;
+                //camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
+
+                camera.lookAt(scene.position);
+
+                // for ( i = 0; i < scene.children.length; i ++ ) {
+                //     var object = scene.children[ i ];
+                //     if ( object instanceof THREE.ParticleSystem ) {
+                //         //object.rotation.x = time;
+                //         object.rotation.y = time;
+                //         object.rotation.z = 2*time;
+                //     }
+                // }
+
+                renderer.render( scene, camera );
+            }
+
+            function animate() {
+                // recursive animation function
+                requestAnimationFrame(animate);
+                //render();
+                controls.update();
+                stats.update();
+            }
+
+        </script>
+
+    </head>
+    <body>
+        <div id="container"></div>
+        <div id="info" class="top-center">
+            <b>Milky Way streams</b></br>
+            Left click and drag: rotate, Scroll wheel: zoom
+        </div>
+
+        <div id="footer">
+            Adrian Price-Whelan // adrn at astro.princeton.edu // <a href="https://twitter.com/adrianprw">@adrianprw</a>
+        </div>
+
+        <script type='text/javascript'>
+
+            $(document).ready(function() {
+                var div = $("<div></div>").attr("id","webgl-notify")
+                                          .attr("class", "top-center");
+                if (!window.WebGLRenderingContext) {
+                    // Browser has no idea what WebGL is. Suggest they
+                    // get a new browser by presenting the user with link to
+                    // http://get.webgl.org
+                    div.html("Oh no! Your browser does not seem to support WebGL.");
+                    $("body").append(div);
+                    $("#info").hide();
+                    return;
+                }
+
+                var canvas = document.createElement('canvas');
+                canvas.setAttribute("id", "canvas");
+                gl = canvas.getContext("webgl");
+                if (!gl && !canvas.getContext("webkit-3d")) {
+
+                    div.html("It seems like your browser supports WebGL, however it does not appear to be enabled. Enable WebGL, then reload the page.<br/>" +
+                        "<a href='http://www.browserleaks.com/webgl#howto-enable-disable-webgl'>How to enable WebGL</a>");
+                    $("body").append(div);
+                    $("#info").hide();
+                    return;
+                }
+
+                $.getJSON("data.json", function(data) {
+                    init(data);
+                    animate();
+                });
+            });
+
+        </script>
+    </body>
+</html>
