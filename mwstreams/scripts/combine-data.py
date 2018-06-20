@@ -24,7 +24,7 @@ gd1_color = '0x85b5b2'
 orp_color = '0xa985b5'
 pal5_color = '0xccc857'
 
-def mw():
+def mw_old():
     ndisk = 100000
     bulge_to_disk = 1 / 6
     nbulge = int(ndisk * bulge_to_disk)
@@ -59,6 +59,11 @@ def mw():
             {'color': mw_bulge_color, 'data': xyz_b.tolist()}]
 
 
+def mw():
+    xyz = np.loadtxt('../data/galaxy.txt')
+    return {'color': mw_disk_color, 'data': xyz.tolist()}
+
+
 def gd1():
     data = np.loadtxt('../data/gd1-in-track.txt')
     c = coord.SkyCoord(ra=data[:, 0]*u.deg,
@@ -84,9 +89,10 @@ def orp():
 def main():
     data = {}
 
-    mw_out = mw()
-    data['Disk'] = mw_out[0]
-    data['Bulge'] = mw_out[1]
+    # mw_out = mw()
+    # data['Disk'] = mw_out[0]
+    # data['Bulge'] = mw_out[1]
+    data['Disk'] = mw()
     data['GD-1'] = gd1()
     data['Orphan'] = orp()
 
