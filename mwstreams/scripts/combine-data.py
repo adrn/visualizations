@@ -65,12 +65,12 @@ def mw():
 
 
 def gd1():
-    data = np.loadtxt('../data/gd1-in-track.txt')
-    c = coord.SkyCoord(ra=data[:, 0]*u.deg,
-                       dec=data[:, 1]*u.deg,
-                       distance=data[:, 2]*u.kpc)
-    galcen = c.transform_to(gc_frame)
-    xyz = galcen.data.xyz.T.value.tolist()
+    xyz = np.loadtxt('../data/gd1-high-prob.txt').tolist()
+    # c = coord.SkyCoord(ra=data[:, 0]*u.deg,
+    #                    dec=data[:, 1]*u.deg,
+    #                    distance=data[:, 2]*u.kpc)
+    # galcen = c.transform_to(gc_frame)
+    # xyz = galcen.data.xyz.T.value.tolist()
 
     return {'color': gd1_color, 'data': xyz}
 
@@ -86,6 +86,25 @@ def orp():
     return {'color': orp_color, 'data': xyz, 'opacity': 1., 'size': 0.5}
 
 
+def pal5():
+    xyz = np.loadtxt('../data/pal5.txt')
+
+    galcen = coord.Galactocentric(x=xyz[:, 0]*u.kpc,
+                                  y=xyz[:, 1]*u.kpc,
+                                  z=xyz[:, 2]*u.kpc)
+    pal5 = galcen.transform_to(gc.Pal5)
+    phi1 = pal5.phi1.wrap_at(180*u.deg)
+    mask = (phi1 > -7*u.deg) & (phi1 < 15*u.deg)
+
+    # fig, ax = plt.subplots(1, 1)
+    # ax.scatter(pal5.phi1.wrap_at(180*u.deg)[mask],
+    #            pal5.phi2[mask])
+    # plt.show()
+
+    return {'color': pal5_color, 'data': xyz[mask].tolist(),
+            'opacity': 0.8}
+
+
 def main():
     data = {}
 
@@ -95,6 +114,7 @@ def main():
     data['Disk'] = mw()
     data['GD-1'] = gd1()
     data['Orphan'] = orp()
+    data['Pal 5'] = pal5()
 
     with open("../data.json", 'w') as f:
         f.write(json.dumps(data))
