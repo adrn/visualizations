@@ -4,7 +4,7 @@ html, body {
     width: 100%;
     font-family: 'Roboto', sans-serif;
     font-weight: 300;
-    background: #cccccc;
+    background: #ffffff;
     color: #333333;
 }
 
@@ -21,6 +21,14 @@ header {
     padding-bottom: 10px;
 }
 
+ul {
+    font-size: 18pt;
+}
+
+ul li {
+    padding: 8px;
+}
+
 ul.menu {
     padding-top: 4px;
     padding-bottom: 4px;
@@ -28,14 +36,13 @@ ul.menu {
 
 ul.menu li {
     vertical-align:middle;
-	padding: 0px 25px;
+	padding: 0px 32px;
 	list-style: none;
 	display: inline;
 }
 
 ul.menu li#name {
-    font-size: 16pt;
-	padding: 0px 25px;
+	padding: 0px 32px;
 	list-style: none;
 	display: inline;
 	border-right: 1px solid #ccc;
@@ -43,12 +50,12 @@ ul.menu li#name {
 
 a.menu_item {
     text-decoration: none;
-    color: #D41513;
+    color: #666666;
 }
 
 a.menu_item:hover {
     text-decoration: underline;
-    color: #FA000D;
+    color: #333333;
 }
 
 h1, h2, h3, h4, h5, h6, h7 {
@@ -84,12 +91,12 @@ h4 {
    -------------------------------- */
 a {
     text-decoration: none;
-    color: #D41513;
+    color: #666666;
 }
 
 a:hover {
     text-decoration: underline;
-    color: #FA000D;
+    color: #222222;
 }
 
 /* --------------------------------
