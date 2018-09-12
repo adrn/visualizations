@@ -76,7 +76,7 @@ def gd1():
 
 
 def orp():
-    data = np.loadtxt('../data/orphan_rrl.txt')
+    data = np.loadtxt('../data/gaia_orphan_rrl.txt')
     c = coord.SkyCoord(ra=data[:, 0]*u.deg,
                        dec=data[:, 1]*u.deg,
                        distance=data[:, 2]*u.kpc)
