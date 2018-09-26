@@ -7,7 +7,7 @@ import sys
 # Third-party
 import astropy.coordinates as coord
 from astropy.table import Table, vstack
-from astropy.io import fits
+from astropy.io import fits, ascii
 import astropy.units as u
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -23,6 +23,7 @@ mw_bulge_color = '0xe49343'
 gd1_color = '0x85b5b2'
 orp_color = '0xa985b5'
 pal5_color = '0xccc857'
+oph_color = '0x1df46c'
 
 def mw_old():
     ndisk = 100000
@@ -105,7 +106,19 @@ def pal5():
             'opacity': 0.8}
 
 
+def oph():
+    data = ascii.read('../data/sesar.txt', format='commented_header',
+                      header_start=2)
+    c = coord.SkyCoord(ra=data['ra']*u.deg,
+                       dec=data['dec']*u.deg,
+                       distance=coord.Distance(distmod=data['DM']))
+    galcen = c.transform_to(gc_frame)
+    xyz = galcen.data.xyz.T.value.tolist()
+
+    return {'color': oph_color, 'data': xyz, 'opacity': 0.8}
+
 def main():
+
     data = {}
 
     # mw_out = mw()
@@ -115,6 +128,7 @@ def main():
     data['GD-1'] = gd1()
     data['Orphan'] = orp()
     data['Pal 5'] = pal5()
+    data['Ophiuchus'] = oph()
 
     with open("../data.json", 'w') as f:
         f.write(json.dumps(data))
