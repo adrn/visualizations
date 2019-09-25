@@ -89,20 +89,7 @@ def orp():
 
 def pal5():
     xyz = np.loadtxt('../data/pal5.txt')
-
-    galcen = coord.Galactocentric(x=xyz[:, 0]*u.kpc,
-                                  y=xyz[:, 1]*u.kpc,
-                                  z=xyz[:, 2]*u.kpc)
-    pal5 = galcen.transform_to(gc.Pal5)
-    phi1 = pal5.phi1.wrap_at(180*u.deg)
-    mask = (phi1 > -7*u.deg) & (phi1 < 15*u.deg)
-
-    # fig, ax = plt.subplots(1, 1)
-    # ax.scatter(pal5.phi1.wrap_at(180*u.deg)[mask],
-    #            pal5.phi2[mask])
-    # plt.show()
-
-    return {'color': pal5_color, 'data': xyz[mask].tolist(),
+    return {'color': pal5_color, 'data': xyz.tolist(),
             'opacity': 0.8}
 
 
