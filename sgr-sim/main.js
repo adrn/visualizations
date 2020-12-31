@@ -1,0 +1,192 @@
+import * as THREE from '../js/three-new/three.module.js';
+import { GUI } from '../js/three-new/examples/jsm/libs/dat.gui.module.js';
+import Stats from '../js/three-new/examples/jsm/libs/stats.module.js';
+
+import { TrackballControls } from '../js/three-new/examples/jsm/controls/TrackballControls.js';
+
+let camera, scene, renderer, controls, stats, container, gui;
+let windowHalfX, windowHalfY;
+let data, particles;
+var options = {
+    rate: 5
+}
+
+const start_time = Date.now();
+var frame = 0;
+
+$(document).ready(function() {
+    $.getJSON("jason-sgr-10000.json", function(this_data) {
+        data = this_data['xyz'];
+        init(data[0]);
+        animate();
+    });
+});
+
+function init(data) {
+    container = document.getElementById('container');
+
+    var aspect = window.innerWidth / window.innerHeight;
+
+    // Setup the camera
+    camera = new THREE.PerspectiveCamera(75, aspect, 10, -10);
+    //camera.position.x = 100;
+    camera.position.y = 50;
+    camera.up = new THREE.Vector3(0, 0, 1);
+
+    // Define the renderer
+    renderer = new THREE.WebGLRenderer({
+        // antialias: true,
+        alpha : true
+    });
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    container.appendChild(renderer.domElement);
+
+    // Add an FPS stats window
+    stats = new Stats();
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.top = '0px';
+    container.appendChild(stats.domElement);
+
+    // Add a GUI with some controls
+    gui = new GUI()
+    const cubeFolder = gui.addFolder("Animation")
+    cubeFolder.add(options, "rate", 0.1, 60, 0.1);
+    cubeFolder.open()
+
+    // Set up the particle texture:
+    const texture = new THREE.Texture( generateTexture( ) );
+    texture.needsUpdate = true; // important
+
+    // Set up the scene
+    scene = new THREE.Scene();
+
+    const geometry = new THREE.BufferGeometry();
+
+    var k = 0;  // initial timestep
+    var d = new Float32Array(data[k].length * 3);
+    for (let i=0; i < data[k].length; i++) {
+        d[3*i + 0] = data[k][i][0];
+        d[3*i + 1] = data[k][i][1];
+        d[3*i + 2] = data[k][i][2];
+    }
+    // x + WIDTH * (y + DEPTH * z)
+
+    geometry.setAttribute('position',
+                            new THREE.BufferAttribute(d, 3));
+    const material = new THREE.PointsMaterial({
+        color: 0xffffff,
+        map: texture,
+        size: 0.2,
+        opacity: 0.25,
+        blending: THREE.AdditiveBlending, // required
+        depthTest: false, // required
+        transparent: true
+    });
+
+    particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+
+    // window.addEventListener('resize', onWindowResize, false);
+
+    createControls(camera);
+}
+
+function generateTexture( ) {
+    // draw a circle in the center of the canvas
+    var size = 128;
+
+    // create canvas
+    var canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+
+    // get context
+    var context = canvas.getContext('2d');
+
+    // draw circle
+    var centerX = size / 2;
+    var centerY = size / 2;
+    var radius = size / 2;
+
+    context.beginPath();
+    context.arc( centerX, centerY, radius, 0, 2 * Math.PI, false );
+    context.fillStyle = "#FFFFFF";
+    context.fill();
+
+    return canvas;
+}
+
+function createControls(camera) {
+
+    controls = new TrackballControls( camera, renderer.domElement );
+
+    controls.rotateSpeed = 2.0;
+    controls.zoomSpeed = 1.2;
+    controls.panSpeed = 0.8;
+
+    controls.keys = [ 65, 83, 68 ];
+
+    controls.staticMoving = true;
+    controls.dynamicDampingFactor = 0.3;
+
+}
+
+// function onWindowResize() {
+//     // if the window is resized
+
+//     windowHalfX = window.innerWidth / 2;
+//     windowHalfY = window.innerHeight / 2;
+
+//     camera.aspect = window.innerWidth / window.innerHeight;
+//     camera.updateProjectionMatrix();
+//     controls.handleResize();
+//     renderer.setSize( window.innerWidth, window.innerHeight );
+// }
+
+function render() {
+    // do the actual rendering
+    const secs_elapsed = (Date.now() - start_time) / 1000.;
+
+    camera.lookAt(scene.position);
+    renderer.render( scene, camera );
+
+    var this_frame = parseInt(secs_elapsed * options.rate);
+    if (this_frame == frame)
+        return true;
+    else if (this_frame >= data.length)
+        return false;
+
+    // TODO: for GD-1 sim, if particle pos are nan, don't show
+
+    var k = this_frame;  // timestep
+
+    var geometry = particles.geometry;
+
+    var d = new Float32Array(data[k].length * 3);
+    console.log('k', k);
+    for (let i=0; i < data[k].length; i++) {
+        d[3*i + 0] = data[k][i][0];
+        d[3*i + 1] = data[k][i][1];
+        d[3*i + 2] = data[k][i][2];
+    }
+    geometry.setAttribute('position',
+                            new THREE.BufferAttribute(d, 3));
+
+    frame = this_frame;
+
+    return true;
+}
+
+function animate() {
+    // recursive animation function
+    var myReq = requestAnimationFrame(animate);
+
+    controls.update();
+    stats.update();
+
+    var anim_state = render();
+
+    if (anim_state != true)
+        cancelAnimationFrame(myReq);
+}
