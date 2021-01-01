@@ -1,18 +1,32 @@
 import * as THREE from '../js/three-new/three.module.js';
 import { GUI } from '../js/three-new/examples/jsm/libs/dat.gui.module.js';
 import Stats from '../js/three-new/examples/jsm/libs/stats.module.js';
-
 import { TrackballControls } from '../js/three-new/examples/jsm/controls/TrackballControls.js';
 
 let camera, scene, renderer, controls, stats, container, gui;
 let windowHalfX, windowHalfY;
 let data, particles;
-var options = {
-    rate: 5
+var config = {
+    rate: 10,
+    frame: null,
+    start_time: null,
+    _running: true,
+    stop: function() {
+        this._running = false;
+    },
+    start: function() {
+        if (this._running == true)
+            return;
+        this._running = true;
+        this.start_time = Date.now();
+    },
+    reset: function() {
+        // defaults:
+        this.frame = 0;
+        this.start_time = Date.now();
+    }
 }
-
-const start_time = Date.now();
-var frame = 0;
+config.reset();
 
 $(document).ready(function() {
     $.getJSON("jason-sgr-10000.json", function(this_data) {
@@ -50,9 +64,12 @@ function init(data) {
 
     // Add a GUI with some controls
     gui = new GUI()
-    const cubeFolder = gui.addFolder("Animation")
-    cubeFolder.add(options, "rate", 0.1, 60, 0.1);
-    cubeFolder.open()
+    const anim_folder = gui.addFolder("Animation")
+    anim_folder.add(config, 'rate', 0.1, 60, 0.1);
+    anim_folder.add(config, 'stop');
+    anim_folder.add(config, 'start');
+    anim_folder.add(config, 'reset');
+    anim_folder.open()
 
     // Set up the particle texture:
     const texture = new THREE.Texture( generateTexture( ) );
@@ -132,39 +149,25 @@ function createControls(camera) {
 
 }
 
-// function onWindowResize() {
-//     // if the window is resized
-
-//     windowHalfX = window.innerWidth / 2;
-//     windowHalfY = window.innerHeight / 2;
-
-//     camera.aspect = window.innerWidth / window.innerHeight;
-//     camera.updateProjectionMatrix();
-//     controls.handleResize();
-//     renderer.setSize( window.innerWidth, window.innerHeight );
-// }
-
 function render() {
     // do the actual rendering
-    const secs_elapsed = (Date.now() - start_time) / 1000.;
+    const secs_elapsed = (Date.now() - config.start_time) / 1000.;
+    var this_frame = config.frame + parseInt(secs_elapsed * config.rate);
 
-    camera.lookAt(scene.position);
-    renderer.render( scene, camera );
+    // console.log(config, this_frame);
 
-    var this_frame = parseInt(secs_elapsed * options.rate);
-    if (this_frame == frame)
+    if (this_frame == config.frame)
         return true;
     else if (this_frame >= data.length)
         return false;
-
-    // TODO: for GD-1 sim, if particle pos are nan, don't show
+    else if (config._running != true)
+        return false;
 
     var k = this_frame;  // timestep
 
     var geometry = particles.geometry;
 
     var d = new Float32Array(data[k].length * 3);
-    console.log('k', k);
     for (let i=0; i < data[k].length; i++) {
         d[3*i + 0] = data[k][i][0];
         d[3*i + 1] = data[k][i][1];
@@ -173,7 +176,8 @@ function render() {
     geometry.setAttribute('position',
                             new THREE.BufferAttribute(d, 3));
 
-    frame = this_frame;
+    config.frame = this_frame;
+    config.start_time = Date.now();
 
     return true;
 }
@@ -187,6 +191,6 @@ function animate() {
 
     var anim_state = render();
 
-    if (anim_state != true)
-        cancelAnimationFrame(myReq);
+    camera.lookAt(scene.position);
+    renderer.render(scene, camera);
 }
