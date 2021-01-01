@@ -3,7 +3,7 @@ import { GUI } from '../js/three-new/examples/jsm/libs/dat.gui.module.js';
 import Stats from '../js/three-new/examples/jsm/libs/stats.module.js';
 import { TrackballControls } from '../js/three-new/examples/jsm/controls/TrackballControls.js';
 
-let camera, scene, renderer, controls, stats, container, gui;
+let camera, scene, renderer, controls, stats, gui;
 let windowHalfX, windowHalfY;
 let data, particles;
 var config = {
@@ -27,18 +27,71 @@ var config = {
     }
 }
 config.reset();
+let container = document.getElementById('container');
+let progress_container = document.getElementById('progress');
+
+var progress = new ProgressBar.Circle(progress_container, {
+    color: '#aaa',
+    // This has to be the same size as the maximum width to
+    // prevent clipping
+    strokeWidth: 4,
+    trailWidth: 2,
+    //easing: 'easeInOut',
+    //duration: 2000,
+    text: {
+      autoStyleContainer: false
+    },
+    from: { color: '#333', width: 2 },
+    to: { color: '#31a354', width: 4 },
+    // Set default step function for all animate calls
+    step: function(state, circle) {
+      circle.path.setAttribute('stroke', state.color);
+      circle.path.setAttribute('stroke-width', state.width);
+
+      var value = Math.round(circle.value() * 100);
+      if (value === 0) {
+        circle.setText('');
+      } else {
+        circle.setText(value);
+      }
+    }
+});
+progress.text.style.fontSize = '22pt';
+// progress.animate(1.0);  // Number from 0.0 to 1.0
 
 $(document).ready(function() {
-    $.getJSON("jason-sgr-10000.json", function(this_data) {
-        data = this_data['xyz'];
-        init(data[0]);
-        animate();
+
+    $.ajax({
+        method: 'GET',
+        url: 'jason-sgr-100000.json',
+        dataType: 'json',
+        success: function(this_data) {
+            $(progress_container).hide();
+            data = this_data['xyz'];
+            init(data[0]);
+            animate();
+        },
+        error: function() { },
+        progress: function(e) {
+            //make sure we can compute the length
+            if(e.lengthComputable) {
+                //calculate the percentage loaded
+                var pct = (e.loaded / e.total) * 100;
+                progress.set((e.loaded / e.total));
+
+                //log percentage loaded
+                // console.log(pct);
+            }
+            //this usually happens when Content-Length isn't set
+            else {
+                console.warn('Content Length not reported!');
+            }
+        }
     });
+
 });
 
 function init(data) {
-    container = document.getElementById('container');
-
     var aspect = window.innerWidth / window.innerHeight;
 
     // Setup the camera
@@ -87,7 +140,7 @@ function init(data) {
         d[3*i + 1] = data[k][i][1];
         d[3*i + 2] = data[k][i][2];
     }
-    // x + WIDTH * (y + DEPTH * z)
+    console.log('done prepping data')
 
     geometry.setAttribute('position',
                             new THREE.BufferAttribute(d, 3));

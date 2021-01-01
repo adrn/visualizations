@@ -13,22 +13,12 @@
         <!-- Javscript dependencies -->
         <script src="http://code.jquery.com/jquery.min.js"></script>
         <!--<script src="../js/jquery.min.js"></script>-->
+        <script src="../js/jquery.ajax-progress.js"></script>
+        <script src="../js/progressbar.min.js"></script>
+
 
     </head>
     <body>
-        <div id="container"></div>
-        <script type="module" src="./main.js"></script>
-
-        <div id="info" class="top-center">
-            <b>Milky Way + Sagittarius Simulation</b></br>
-            Left click and drag: rotate, Scroll wheel: zoom
-        </div>
-
-        <div id="footer">
-            <p>Adrian Price-Whelan // <a href="https://github.com/adrn">@adrn</a> // <a href="https://twitter.com/adrianprw">@adrianprw</a></p>
-            <p>Simulation by Jason A. S. Hunt</p>
-        </div>
-
         <script type='text/javascript'>
 
             $(document).ready(function() {
@@ -58,5 +48,20 @@
             });
 
         </script>
+
+        <div id="container"></div>
+        <div id="progress"></div>
+        <script type="module" src="./main.js"></script>
+
+        <div id="info" class="top-center">
+            <b>Milky Way + Sagittarius Simulation</b></br>
+            Left click and drag: rotate, Scroll wheel: zoom
+        </div>
+
+        <div id="footer">
+            <p>Adrian Price-Whelan // <a href="https://github.com/adrn">@adrn</a> // <a href="https://twitter.com/adrianprw">@adrianprw</a></p>
+            <p>Simulation by Jason A. S. Hunt</p>
+        </div>
+
     </body>
 </html>
