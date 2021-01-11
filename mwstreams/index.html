@@ -21,12 +21,26 @@
         <script src="../js/three/stats.min.js"></script>
         <script src="../js/three/lib/controls/TrackballControls.js"></script>
         <script src="http://code.jquery.com/jquery.min.js"></script>
+        <script type="text/javascript" src="../js/dat.gui.min.js"></script>
+
         <!--<script src="../js/jquery.min.js"></script>-->
+
+    </head>
+    <body>
+        <div id="container"></div>
+        <div id="info" class="top-center">
+            <b>Milky Way streams</b></br>
+            Left click and drag: rotate, Scroll wheel: zoom
+        </div>
+
+        <div id="footer">
+            Adrian Price-Whelan // adrn at astro.princeton.edu // <a href="https://twitter.com/adrianprw">@adrianprw</a>
+        </div>
 
         <script type='text/javascript'>
             // First check for WebGL support
             var stats, camera, scene, renderer,
-                all_particles, geometry, materials, parameters;
+                all_particles, geometry, materials, parameters, keys, menu;
 
                 var windowHalfX, windowHalfY,
                 mouseX, mouseY;
@@ -38,6 +52,12 @@
             windowHalfY = window.innerHeight / 2;
             mouseX = 0;
             mouseY = 0;
+            var gui = new dat.gui.GUI();
+            var guiConfig;
+
+            function hideStream(streamName) {
+                console.log(streamName);
+            }
 
             function generateTexture( ) {
 
@@ -99,15 +119,21 @@
                 var texture = new THREE.Texture( generateTexture( ) );
                 texture.needsUpdate = true; // important
 
-                var keys = [];
+                keys = [];
                 for(var k in data) keys.push(k);
 
                 for (var j=0; j < keys.length; j++) {
                     geometry = new THREE.Geometry();
 
+                    if (keys[j] == 'Disk') {
+                        var default_size = 0.1;
+                    } else {
+                        var default_size = 0.35;
+                    }
+
                     var d = data[keys[j]],
                         position = d['data'],
-                        size = d['size'] || 1e-1;
+                        size = d['size'] || default_size;
 
                     for (var i=0; i < position.length; i++) {
                         var vertex = new THREE.Vector3();
@@ -133,6 +159,36 @@
                     all_particles[keys[j]] = particles;
                     materials[keys[j]] = material;
                 }
+
+                guiConfig = {};
+                menu = {};
+                const streamFolder = gui.addFolder("Streams")
+                for (var j=0; j < keys.length; j++) {
+                    if (keys[j] != 'Disk') {
+                        guiConfig[keys[j]] = true;
+                        menu[keys[j]] = streamFolder.add(guiConfig, keys[j]);
+                    }
+                }
+                guiConfig['Hide All'] = function () {
+                    for (var j=0; j < keys.length; j++) {
+                        if (keys[j] != 'Disk') {
+                            guiConfig[keys[j]] = false;
+                            menu[keys[j]].__checkbox.checked = false;
+                        }
+                    }
+                };
+                guiConfig['Show All'] = function () {
+                    for (var j=0; j < keys.length; j++) {
+                        if (keys[j] != 'Disk') {
+                            guiConfig[keys[j]] = true;
+                            menu[keys[j]].__checkbox.checked = true;
+                        }
+                    }
+                };
+                streamFolder.add(guiConfig, 'Hide All');
+                streamFolder.add(guiConfig, 'Show All');
+                streamFolder.open()
+
 
                 // -- Add the sun --
                 geometry = new THREE.Geometry();
@@ -210,24 +266,20 @@
             function animate() {
                 // recursive animation function
                 requestAnimationFrame(animate);
-                //render();
+
+                for (var j=0; j < keys.length; j++) {
+                    if (guiConfig[keys[j]] == false ) {
+                        all_particles[keys[j]].visible = false;
+                    } else {
+                        all_particles[keys[j]].visible = true;
+                    }
+                }
+                render();
                 controls.update();
                 stats.update();
             }
 
         </script>
-
-    </head>
-    <body>
-        <div id="container"></div>
-        <div id="info" class="top-center">
-            <b>Milky Way streams</b></br>
-            Left click and drag: rotate, Scroll wheel: zoom
-        </div>
-
-        <div id="footer">
-            Adrian Price-Whelan // adrn at astro.princeton.edu // <a href="https://twitter.com/adrianprw">@adrianprw</a>
-        </div>
 
         <script type='text/javascript'>
 
