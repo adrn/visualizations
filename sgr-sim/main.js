@@ -63,7 +63,8 @@ $(document).ready(function() {
 
     $.ajax({
         method: 'GET',
-        url: 'jason-sgr-100000.json',
+        // url: 'jason-sgr-10000.json',
+        url: 'https://users.flatironinstitute.org/~apricewhelan/data/misc/jason-sgr-100000.json',
         dataType: 'json',
         success: function(this_data) {
             $(progress_container).hide();
