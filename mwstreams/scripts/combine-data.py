@@ -6,7 +6,7 @@ import sys
 
 # Third-party
 import astropy.coordinates as coord
-from astropy.table import Table, vstack
+import astropy.table as at
 from astropy.io import fits, ascii
 import astropy.units as u
 import matplotlib as mpl
@@ -19,45 +19,8 @@ import gala.dynamics as gd
 gc_frame = coord.Galactocentric(galcen_distance=8*u.kpc, z_sun=0*u.pc)
 
 mw_disk_color = '0x5778a4'
-mw_bulge_color = '0xe49343'
-gd1_color = '0x85b5b2'
-orp_color = '0xa985b5'
-pal5_color = '0xccc857'
-oph_color = '0x1df46c'
-
-def mw_old():
-    ndisk = 100000
-    bulge_to_disk = 1 / 6
-    nbulge = int(ndisk * bulge_to_disk)
-
-    R = np.random.exponential(scale=3, size=ndisk)
-    z = np.random.exponential(scale=0.25, size=ndisk)
-    phi = np.random.uniform(0, 2*np.pi, size=ndisk)
-    x = R * np.cos(phi)
-    y = R * np.sin(phi)
-    z = np.random.choice([-1, 1], size=ndisk) * z
-    xyz_d = np.vstack((x, y, z)).T
-
-    # bulge
-    r = np.random.pareto(a=2.5, size=2*nbulge)
-    r = r[r < 5][:nbulge]
-    phi = np.random.uniform(0, 2*np.pi, size=nbulge)
-    theta = np.arccos(2 * np.random.uniform(size=nbulge) - 1)
-    x = r * np.cos(phi) * np.sin(theta)
-    y = r * np.sin(phi) * np.sin(theta)
-    z = r * np.cos(theta)
-    xyz_b = np.vstack((x, y, z)).T
-
-    # fig, axes = plt.subplots(1, 2, figsize=(10, 5), sharex=True, sharey=True)
-    # axes[0].plot(x, y, marker='.', ls='none', alpha=0.2)
-    # axes[1].plot(x, z, marker='.', ls='none', alpha=0.2)
-    # axes[0].set_xlim(-10, 10)
-    # axes[0].set_ylim(-10, 10)
-    # fig.tight_layout()
-    # plt.show()
-
-    return [{'color': mw_disk_color, 'data': xyz_d.tolist()},
-            {'color': mw_bulge_color, 'data': xyz_b.tolist()}]
+cmap = plt.get_cmap('Set2')
+cycler = plt.cycler("color", cmap.colors)()
 
 
 def mw():
@@ -73,7 +36,8 @@ def gd1():
     # galcen = c.transform_to(gc_frame)
     # xyz = galcen.data.xyz.T.value.tolist()
 
-    return {'color': gd1_color, 'data': xyz}
+    return {'color': mpl.colors.rgb2hex(next(cycler)['color']),
+            'data': xyz}
 
 
 def orp():
@@ -84,12 +48,14 @@ def orp():
     galcen = c.transform_to(gc_frame)
     xyz = galcen.data.xyz.T.value.tolist()
 
-    return {'color': orp_color, 'data': xyz, 'opacity': 1., 'size': 0.5}
+    return {'color': mpl.colors.rgb2hex(next(cycler)['color']),
+            'data': xyz, 'opacity': 1., 'size': 0.5}
 
 
 def pal5():
     xyz = np.loadtxt('../data/pal5.txt')
-    return {'color': pal5_color, 'data': xyz.tolist(),
+    return {'color': mpl.colors.rgb2hex(next(cycler)['color']),
+            'data': xyz.tolist(),
             'opacity': 0.8}
 
 
@@ -102,20 +68,46 @@ def oph():
     galcen = c.transform_to(gc_frame)
     xyz = galcen.data.xyz.T.value.tolist()
 
-    return {'color': oph_color, 'data': xyz, 'opacity': 0.8}
+    return {'color': mpl.colors.rgb2hex(next(cycler)['color']),
+            'data': xyz, 'opacity': 0.8}
+
+
+def shipp_streams():
+    members = ascii.read('../data/shipp2019.txt', format='commented_header',
+                         delimiter=',')
+    dist_tbl = ascii.read('../data/shipp2019_tbl4.txt', format='basic',
+                          delimiter='\t')
+
+    joined = at.join(members, dist_tbl)
+
+    streams = {}
+    for name in np.unique(joined['Name']):
+        rows = joined[joined['Name'] == name]
+        c = coord.SkyCoord(ra=rows['RA']*u.deg,
+                           dec=rows['Dec']*u.deg,
+                           distance=coord.Distance(distmod=rows['m - M']))
+        galcen = c.transform_to(gc_frame)
+        xyz = galcen.data.xyz.T.value.tolist()
+
+        streams[name] = {'color': mpl.colors.rgb2hex(next(cycler)['color']),
+                         'data': xyz, 'opacity': 0.8}
+
+    return streams
+
 
 def main():
-
     data = {}
 
-    # mw_out = mw()
-    # data['Disk'] = mw_out[0]
-    # data['Bulge'] = mw_out[1]
     data['Disk'] = mw()
     data['GD-1'] = gd1()
     data['Orphan'] = orp()
     data['Pal 5'] = pal5()
     data['Ophiuchus'] = oph()
+    data.update(shipp_streams())
+
+    for k in data:
+        if data[k]['color'].startswith('#'):
+            data[k]['color'] = '0x' + data[k]['color'][1:]
 
     with open("../data.json", 'w') as f:
         f.write(json.dumps(data))
