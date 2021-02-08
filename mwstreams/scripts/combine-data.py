@@ -95,6 +95,19 @@ def shipp_streams():
     return streams
 
 
+def sgr():
+    # From Vasiliev: https://zenodo.org/record/4038137#.YCF4LRNKjUJ
+    data = ascii.read('../data/Sgr_catalogue.txt', format='commented_header')
+    c = coord.SkyCoord(ra=data['ra']*u.deg,
+                       dec=data['dec']*u.deg,
+                       distance=data['dist']*u.kpc)
+    galcen = c.transform_to(gc_frame)
+    xyz = galcen.data.xyz.T.value.tolist()
+
+    return {'color': mpl.colors.rgb2hex(next(cycler)['color']),
+            'data': xyz, 'opacity': 0.4, 'size': 0.2}
+
+
 def main():
     data = {}
 
@@ -103,6 +116,7 @@ def main():
     data['Orphan'] = orp()
     data['Pal 5'] = pal5()
     data['Ophiuchus'] = oph()
+    data['Sagittarius'] = sgr()
     data.update(shipp_streams())
 
     for k in data:
