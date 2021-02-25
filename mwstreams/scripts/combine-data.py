@@ -108,15 +108,29 @@ def sgr():
             'data': xyz, 'opacity': 0.4, 'size': 0.2}
 
 
+def mag():
+    # Also from Vasiliev RR LyraeYCF4LRNKjUJ
+    data = at.Table.read('../data/magellanic_rrl.fits')
+    c = coord.SkyCoord(ra=data['RA']*u.deg,
+                       dec=data['DEC']*u.deg,
+                       distance=data['DIST']*u.kpc)
+    galcen = c.transform_to(gc_frame)
+    xyz = galcen.data.xyz.T.value.tolist()
+
+    return {'color': mpl.colors.rgb2hex(next(cycler)['color']),
+            'data': xyz, 'opacity': 0.4, 'size': 0.2}
+
+
 def main():
     data = {}
 
     data['Disk'] = mw()
+    data['MagellanicClouds'] = mag()
+    data['Sagittarius'] = sgr()
     data['GD-1'] = gd1()
     data['Orphan'] = orp()
     data['Pal 5'] = pal5()
     data['Ophiuchus'] = oph()
-    data['Sagittarius'] = sgr()
     data.update(shipp_streams())
 
     for k in data:
