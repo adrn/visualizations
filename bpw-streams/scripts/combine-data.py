@@ -32,7 +32,7 @@ def mcs():
     xyz = galcen.data.xyz.T.value.tolist()
 
     return {
-        "color": mpl.colors.rgb2hex(next(cycler)["color"]),
+        "color": "0x33FFB9",  # mpl.colors.rgb2hex(next(cycler)["color"]),
         "data": xyz,
         "opacity": 0.4,
         "size": 0.2,

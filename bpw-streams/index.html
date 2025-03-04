@@ -1,4 +1,3 @@
-
 <!--
     TODO:
     - Add other streams, toggle on off
@@ -96,6 +95,7 @@
                 camera = new THREE.PerspectiveCamera(75, aspect, 1, -10);
                 camera.position.x = -60;
                 camera.position.y = 30;
+                camera.position.z = 30;
                 camera.up = new THREE.Vector3(0, 0, 1);
 
                 // set the camera to orbit control
@@ -164,6 +164,77 @@
 
                 guiConfig = {};
                 menu = {};
+
+                // Add camera animation controls
+                const animationFolder = gui.addFolder("Camera");
+                guiConfig.isAnimating = false;
+                guiConfig.rotationSpeed = 0.5;
+
+                // Store initial camera position for reset functionality
+                guiConfig.initialCameraPosition = {
+                    x: -60,  // Match the initial values from camera setup
+                    y: 30,
+                    z: camera.position.z,
+                    upX: 0,   // Store the initial up vector
+                    upY: 0,
+                    upZ: 1
+                };
+
+                // Reset camera function
+                guiConfig.resetCamera = function() {
+                    // Stop animation if it's running
+                    if (guiConfig.isAnimating) {
+                        guiConfig.isAnimating = false;
+                        controls.enabled = true;
+                    }
+
+                    // Reset to initial position
+                    camera.position.set(
+                        guiConfig.initialCameraPosition.x,
+                        guiConfig.initialCameraPosition.y,
+                        guiConfig.initialCameraPosition.z
+                    );
+
+                    // Reset camera up vector to ensure proper orientation
+                    camera.up.set(
+                        guiConfig.initialCameraPosition.upX,
+                        guiConfig.initialCameraPosition.upY,
+                        guiConfig.initialCameraPosition.upZ
+                    );
+
+                    // Reset camera target
+                    camera.lookAt(scene.position);
+
+                    // Reset and update controls
+                    controls.target.set(0, 0, 0);
+                    controls.update();
+                };
+
+                guiConfig.toggleAnimation = function() {
+                    guiConfig.isAnimating = !guiConfig.isAnimating;
+                    if (guiConfig.isAnimating) {
+                        // Disable manual controls during animation
+                        controls.enabled = false;
+                    } else {
+                        // Enable manual controls when animation is stopped
+                        controls.enabled = true;
+                    }
+                };
+
+                // First add the button normally with a static name
+                const animButton = animationFolder.add(guiConfig, 'toggleAnimation').name("Animate Camera");
+
+                // Then update the name whenever the button is clicked
+                animButton.onChange(function() {
+                    animButton.name(guiConfig.isAnimating ? "Animate Camera" : "Stop Rotation");
+                });
+                animationFolder.add(guiConfig, 'rotationSpeed', 0.1, 2.0).name("Rotation Speed");
+
+                // Add reset camera button
+                animationFolder.add(guiConfig, 'resetCamera').name("Reset Camera");
+
+                animationFolder.open();
+
                 const streamFolder = gui.addFolder("Streams")
                 for (var j=0; j < keys.length; j++) {
                     if (keys[j] != 'Disk') {
@@ -251,7 +322,7 @@
                 //camera.position.x += ( mouseX - camera.position.x ) * 0.05;
                 //camera.position.y += ( - mouseY - camera.position.y ) * 0.05;
 
-                camera.lookAt(scene.position);
+                // camera.lookAt(scene.position);
 
                 // for ( i = 0; i < scene.children.length; i ++ ) {
                 //     var object = scene.children[ i ];
@@ -276,8 +347,30 @@
                         all_particles[keys[j]].visible = true;
                     }
                 }
+
+                // Handle camera animation
+                if (guiConfig.isAnimating) {
+                    // Get current camera position
+                    const x = camera.position.x;
+                    const y = camera.position.y;
+                    const z = camera.position.z;
+
+                    // Calculate new position by rotating around z-axis
+                    const angle = guiConfig.rotationSpeed * 0.01;
+                    const newX = x * Math.cos(angle) - y * Math.sin(angle);
+                    const newY = x * Math.sin(angle) + y * Math.cos(angle);
+
+                    // Update camera position
+                    camera.position.set(newX, newY, z);
+
+                    // Keep camera looking at the center
+                    camera.lookAt(scene.position);
+                } else {
+                    // Use normal controls
+                    controls.update();
+                }
+
                 render();
-                controls.update();
                 stats.update();
             }
 
