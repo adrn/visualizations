@@ -53,7 +53,7 @@ def all_streams():
             "color": mpl.colors.rgb2hex(next(cycler)["color"]),
             "data": xyz,
             "opacity": 0.25,
-            "size": 0.25,
+            "size": 0.2,
         }
 
     return streams

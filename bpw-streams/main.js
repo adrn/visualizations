@@ -49,7 +49,7 @@ function init(data) {
 
     // Set up camera
     const aspect = window.innerWidth / window.innerHeight;
-    camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000); // Fixed near/far planes
+    camera = new THREE.PerspectiveCamera(75, aspect, 0.01, 10000);
     camera.position.set(-60, 30, 30);
     camera.up.set(0, 0, 1); // Z-up coordinate system
 
@@ -84,7 +84,7 @@ function init(data) {
         // Create geometry for particles
         const geometry = new THREE.BufferGeometry();
 
-        const defaultSize = key === 'Disk' ? 0.1 : 0.35;
+        const defaultSize = key === 'Disk' ? 0.1 : 0.25;
         const d = data[key];
         const position = d.data;
         const size = d.size || defaultSize;
@@ -106,8 +106,10 @@ function init(data) {
             size: size,
             map: texture,
             blending: THREE.AdditiveBlending,
-            depthWrite: false, // Modern equivalent to depthTest: false
-            transparent: true
+            depthWrite: false,  // Keep this false
+            depthTest: true,    // Make sure depth testing is enabled
+            transparent: true,
+            alphaTest: 0.01     // Add a small alpha test threshold
         });
 
         material.opacity = d.opacity || 0.4;
@@ -214,7 +216,10 @@ function init(data) {
     streamFolder.close();
 
     // Set up the renderer
-    renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer = new THREE.WebGLRenderer({
+        alpha: true, antialias: true, logarithmicDepthBuffer: true
+    });
+    renderer.setClearColor(0x000000, 0);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     container.appendChild(renderer.domElement);
