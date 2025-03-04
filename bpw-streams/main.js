@@ -50,7 +50,7 @@ function init(data) {
     // Set up camera
     const aspect = window.innerWidth / window.innerHeight;
     camera = new THREE.PerspectiveCamera(75, aspect, 0.01, 10000);
-    camera.position.set(-60, 30, 30);
+    camera.position.set(0, -60, 30);
     camera.up.set(0, 0, 1); // Z-up coordinate system
 
     // Set up OrbitControls
@@ -81,47 +81,96 @@ function init(data) {
 
     // Process each stream/object
     keys.forEach(key => {
-        // Create geometry for particles
-        const geometry = new THREE.BufferGeometry();
+        if (key === 'Disk') {
+            // Create a plane geometry for the galaxy disk image
+            const diskRadius = 15.5; // Adjust based on your data scale
+            const planeGeometry = new THREE.PlaneGeometry(diskRadius * 2, diskRadius * 2);
 
-        const defaultSize = key === 'Disk' ? 0.1 : 0.25;
-        const d = data[key];
-        const position = d.data;
-        const size = d.size || defaultSize;
+            // Load galaxy texture
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.load('mw_spw.png', function(texture) {
+                // Create material with the loaded texture
+                const diskMaterial = new THREE.MeshBasicMaterial({
+                    map: texture,
+                    transparent: true,
+                    opacity: 1,
+                    blending: THREE.AdditiveBlending,
+                    depthWrite: false,
+                    side: THREE.DoubleSide // Visible from both sides
+                });
 
-        // Convert position data to TypedArray for BufferGeometry
-        const vertices = new Float32Array(position.length * 3);
+                // Create the mesh representing the disk
+                const diskMesh = new THREE.Mesh(planeGeometry, diskMaterial);
 
-        for (let i = 0; i < position.length; i++) {
-            vertices[i * 3] = position[i][0];     // x
-            vertices[i * 3 + 1] = position[i][1]; // y
-            vertices[i * 3 + 2] = position[i][2]; // z
+                scene.add(diskMesh);
+                all_particles[key] = diskMesh;
+
+                // Store material reference for later access
+                materials[key] = diskMaterial;
+            });
+        } else {
+            // For non-disk streams, use the existing particle approach
+            // Create geometry for particles
+            const geometry = new THREE.BufferGeometry();
+
+            const defaultSize = 0.25;
+            const d = data[key];
+            const position = d.data;
+            const size = d.size || defaultSize;
+
+            // Convert position data to TypedArray for BufferGeometry
+            const vertices = new Float32Array(position.length * 3);
+
+            for (let i = 0; i < position.length; i++) {
+                vertices[i * 3] = position[i][0];
+                vertices[i * 3 + 1] = position[i][1];
+                vertices[i * 3 + 2] = position[i][2];
+            }
+
+            // Add position attribute to geometry
+            geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+            // Create material for stream particles
+            const material = new THREE.PointsMaterial({
+                size: size,
+                map: texture,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                depthTest: true,
+                transparent: true,
+                alphaTest: 0.01
+            });
+
+            material.opacity = d.opacity || 0.4;
+            material.color.setHex(parseInt(d.color) || 0xffffff);
+
+            // Create points
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            all_particles[key] = particles;
+            materials[key] = material;
         }
-
-        // Add position attribute to geometry
-        geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-
-        // Create material - Replace ParticleBasicMaterial with Points material
-        const material = new THREE.PointsMaterial({
-            size: size,
-            map: texture,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,  // Keep this false
-            depthTest: true,    // Make sure depth testing is enabled
-            transparent: true,
-            alphaTest: 0.01     // Add a small alpha test threshold
-        });
-
-        material.opacity = d.opacity || 0.4;
-        material.color.setHex(parseInt(d.color) || 0xffffff);
-
-        // Create points (replaces ParticleSystem)
-        const particles = new THREE.Points(geometry, material);
-        scene.add(particles);
-
-        all_particles[key] = particles;
-        materials[key] = material;
     });
+
+    // Add a large red marker particle to represent the Sun at [-8.2, 0, 0]
+    // const sunGeometry = new THREE.BufferGeometry();
+    // const sunVertices = new Float32Array(3);
+    // sunVertices[0] = -8.2;
+    // sunVertices[1] = 0;
+    // sunVertices[2] = 0;
+
+    // sunGeometry.setAttribute('position', new THREE.BufferAttribute(sunVertices, 3));
+    // const sunMaterial = new THREE.PointsMaterial({
+    //     size: 1,
+    //     color: 0xff0000
+    // });
+    // const sun = new THREE.Points(sunGeometry, sunMaterial);
+    // scene.add(sun);
+
+    // // Store the sun in all_particles (optional, if you want to control it later)
+    // all_particles['Sun'] = sun;
+    // materials['Sun'] = sunMaterial;
 
     // Set up GUI configuration
     guiConfig = {
