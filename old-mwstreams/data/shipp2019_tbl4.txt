@@ -1,0 +1,15 @@
+Name	m - M	Age (Gyr)	Z
+Aliqa Uma	17.3	12.5	0.0001
+ATLAS	16.8	12.5	0.0001
+Chenab	18.0	12.5	0.0001
+Elqui	18.5	12.5	0.0001
+Indus	16.1	12.5	0.0004
+Jhelum	15.6	12.5	0.0001
+Molonglo	16.8	13.5	0.001
+Phoenix	16.4	12.5	0.0001
+Ravi	16.8	13.5	0.0003
+Tucana III	17.0	13.5	0.0001
+Turbio	16.1	12.5	0.0001
+Turranburra	17.2	13.5	0.0003
+Wambelong	15.9	11.0	0.0001
+Willka Yaku	17.7	11.0	0.0006
